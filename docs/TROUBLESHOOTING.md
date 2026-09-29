@@ -34,11 +34,15 @@ Isso é o padrão. Abra o ReShade com Home e marque `FGM_Rain`. Força das gotas
 
 ## O poste continua amarelo
 
-`FGM_Lamps` só alcança um núcleo pequeno. Se a lâmpada ocupa mais que o anel de 18 pixels, ela permanece âmbar. Confira se a técnica está marcada e se Branco dos postes está em 0,88. Zero desliga a correção.
+Quality deve estar no nível 3, White LED. Se a lâmpada ocupa mais que o anel de 32 pixels, o núcleo não é isolado e permanece âmbar. Confira se `FGM_Lamps` está marcada. O halo em volta do núcleo continua de propósito um pouco quente.
 
 ## Uma janela ou um letreiro ficou branco
 
-A aproximação pode pegar uma mancha quente e pequena. Baixe Branco dos postes ou desmarque `FGM_Lamps`. Neon, semáforo e farol quase branco não entram nessa conta quando a cor está fora da faixa âmbar.
+A aproximação pode pegar uma mancha quente e pequena. Baixe o slider Postes para Neutral ou Soft, ou desmarque `FGM_Lamps`. Neon, semáforo e farol quase branco ficam de fora quando a cor não é a do poste.
+
+## O fundo continua branco, ou ficou escuro demais
+
+O slider Horizonte da `FGM_ClearView` vai de 0 a 3. Quality abre em 3 e Performance em 2. Zero devolve o véu original. O efeito não enxerga distância: um cinza lavado no meio da escala é tratado como névoa, e uma parede branca muito clara pode mudar pouco.
 
 ## As duas edições parecem misturadas
 

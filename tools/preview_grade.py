@@ -7,7 +7,7 @@ import struct
 import zlib
 from pathlib import Path
 
-from build_dist import grade, smoothstep
+from build_dist import clear_pixel, grade, smoothstep, vibrance
 
 OUT = Path("/opt/cursor/artifacts")
 SIZE = 32
@@ -31,17 +31,23 @@ def write_png(path: Path, width: int, height: int, rgb: bytes) -> None:
 
 # Centros usados pela prévia e pelas checagens. O anel do shader tem 18 px.
 MARK = {
-    "sodium": (70, 130),
-    "window": (195, 95),
-    "window_edge": (160, 95),
-    "head": (360, 180),
-    "neon": (30, 80),
-    "red": (300, 60),
-    "green": (340, 60),
-    "amber": (400, 60),
-    "blue": (450, 110),
-    "street": (200, 240),
-    "sunset": (260, 170),
+    "sodium": (58, 210),
+    "halo": (58, 196),
+    "window": (230, 120),
+    "head": (400, 200),
+    "neon": (24, 36),
+    "red": (330, 48),
+    "green": (370, 48),
+    "amber": (410, 48),
+    "blue": (450, 90),
+    "street": (120, 250),
+    "sunset": (300, 168),
+    "plant": (48, 175),
+    "car": (340, 200),
+    "sign": (150, 188),
+    "haze": (200, 78),
+    "sky": (200, 24),
+    "shadow": (20, 250),
 }
 
 
@@ -61,22 +67,38 @@ def scene(width: int, height: int, night: bool) -> bytearray:
                 sky = (0.03 + 0.04 * (1.0 - v), 0.04 + 0.05 * (1.0 - v), 0.08 + 0.06 * (1.0 - v))
                 street = (0.08, 0.08, 0.09)
                 color = [sky[i] * (1.0 - v) + street[i] * v for i in range(3)]
-                if 160 <= x <= 230 and 70 <= y <= 120:
+                if y < 70:
+                    veil = 0.55
+                    color = [channel * 0.45 + veil * 0.55 for channel in color]
+                if 160 <= x <= 310 and 55 <= y <= 185:
                     color = [0.86, 0.63, 0.34]
-                color = paint(color, x, y, 70, 130, 14, (0.42, 0.30, 0.12))
-                color = paint(color, x, y, 70, 130, 7, (1.0, 0.70, 0.28))
-                color = paint(color, x, y, 360, 180, 4, (0.96, 0.94, 0.82))
-                color = paint(color, x, y, 30, 80, 5, (0.92, 0.12, 0.62))
-                color = paint(color, x, y, 300, 60, 3, (0.93, 0.07, 0.05))
-                color = paint(color, x, y, 340, 60, 3, (0.08, 0.78, 0.12))
-                color = paint(color, x, y, 400, 60, 3, (0.95, 0.48, 0.05))
-                color = paint(color, x, y, 450, 110, 4, (0.15, 0.28, 0.96))
+                if 16 <= x <= 90 and 160 <= y <= 205:
+                    color = [0.18, 0.34, 0.14]
+                color = paint(color, x, y, 58, 210, 20, (0.55, 0.38, 0.16))
+                color = paint(color, x, y, 58, 210, 11, (1.0, 0.68, 0.26))
+                color = paint(color, x, y, 400, 200, 4, (0.96, 0.94, 0.82))
+                color = paint(color, x, y, 24, 36, 5, (0.92, 0.12, 0.62))
+                color = paint(color, x, y, 330, 48, 3, (0.93, 0.07, 0.05))
+                color = paint(color, x, y, 370, 48, 3, (0.08, 0.78, 0.12))
+                color = paint(color, x, y, 410, 48, 3, (0.95, 0.48, 0.05))
+                color = paint(color, x, y, 450, 90, 4, (0.15, 0.28, 0.96))
             else:
                 sky = (0.45 + 0.15 * (1.0 - v), 0.62, 0.82)
                 ground = (0.35, 0.36, 0.32)
                 color = [sky[i] * (1.0 - v) + ground[i] * v for i in range(3)]
-                if 0.55 < v < 0.72 and 0.40 < u < 0.70:
-                    warm = (0.95, 0.55, 0.25)  # faixa de pôr do sol já presente no quadro
+                if y < 100:
+                    haze = 0.78 + 0.08 * (1.0 - y / 100.0)
+                    color = [channel * 0.25 + haze * 0.75 for channel in color]
+                if 120 <= x <= 280 and 55 <= y <= 100:
+                    color = [0.55, 0.56, 0.58]
+                if 20 <= x <= 80 and 150 <= y <= 205:
+                    color = [0.34, 0.42, 0.28]
+                if 310 <= x <= 375 and 180 <= y <= 225:
+                    color = [0.62, 0.14, 0.12]
+                if 130 <= x <= 175 and 165 <= y <= 210:
+                    color = [0.78, 0.62, 0.12]
+                if 0.55 < v < 0.72 and 0.55 < u < 0.78:
+                    warm = (0.95, 0.55, 0.25)
                     color = [color[i] * 0.35 + warm[i] * 0.65 for i in range(3)]
             index = (y * width + x) * 3
             rgb[index : index + 3] = bytes(int(min(255, max(0, channel * 255))) for channel in color)
@@ -88,29 +110,36 @@ def luma(color: tuple[float, float, float]) -> float:
 
 
 def lamp_chroma(color: tuple[float, float, float]) -> float:
-    # A mesma conta de FGM_Lamps.fx. Núcleo âmbar, sem farol branco nem neon.
+    # A mesma conta de FGM_Lamps.fx. Núcleo quente, não o halo nem o neon.
     red, green, blue = color
     peak = max(red, green, blue)
     floorc = min(red, green, blue)
     sat = (peak - floorc) / max(peak, 0.001)
-    bright = smoothstep(0.55, 0.75, luma(color))
+    bright = smoothstep(0.60, 0.74, luma(color))
     ratio = green / max(red, 0.001)
-    sodium = smoothstep(0.55, 0.64, ratio) * (1.0 - smoothstep(0.84, 0.93, ratio))
-    blue_def = smoothstep(0.16, 0.30, min(red, green) - blue)
-    sat_ok = smoothstep(0.18, 0.32, sat) * (1.0 - smoothstep(0.70, 0.88, sat))
+    sodium = smoothstep(0.42, 0.56, ratio) * (1.0 - smoothstep(0.90, 0.98, ratio))
+    blue_def = smoothstep(0.10, 0.22, min(red, green) - blue)
+    sat_ok = smoothstep(0.10, 0.20, sat) * (1.0 - smoothstep(0.78, 0.92, sat))
     return bright * sodium * blue_def * sat_ok
 
 
-def apply_lamps(rgb: bytearray, width: int, height: int, taps: int, strength: float) -> bytearray:
-    # Anel de 18 px. Quality usa 8 amostras; Performance usa as 4 cardeais.
+def lamp_strength(level: int) -> float:
+    if level <= 1:
+        return 0.62
+    if level == 2:
+        return 0.82
+    return 1.0
+
+
+def apply_lamps(rgb: bytearray, width: int, height: int, taps: int, level: int) -> bytearray:
+    # Anel de 32 px. Quality usa 8 amostras; Performance usa as 4 cardeais.
+    strength = lamp_strength(level)
     out = bytearray(rgb)
-    if strength <= 0.001:
-        return out
     offsets = [(1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)]
     if taps > 4:
         diagonal = 0.7071
         offsets += [(diagonal, diagonal), (-diagonal, diagonal), (diagonal, -diagonal), (-diagonal, -diagonal)]
-    radius = 18.0
+    radius = 32.0
     for y in range(height):
         for x in range(width):
             index = (y * width + x) * 3
@@ -124,8 +153,9 @@ def apply_lamps(rgb: bytearray, width: int, height: int, taps: int, strength: fl
                 sy = min(height - 1, max(0, int(round(y + oy * radius))))
                 sample_index = (sy * width + sx) * 3
                 sample = tuple(channel / 255.0 for channel in rgb[sample_index : sample_index + 3])
-                around = max(around, luma(sample))
-            isolated = smoothstep(0.22, 0.42, luma(color) - around)
+                around += luma(sample)
+            around /= len(offsets)
+            isolated = smoothstep(0.06, 0.18, luma(color) - around)
             amount = chroma * isolated * strength
             if amount <= 0.0:
                 continue
@@ -220,26 +250,44 @@ def max_delta(a: tuple[float, float, float], b: tuple[float, float, float]) -> f
     return max(abs(a[i] - b[i]) for i in range(3))
 
 
+def saturation(color: tuple[float, float, float]) -> float:
+    peak = max(color)
+    floorc = min(color)
+    return (peak - floorc) / max(peak, 0.001)
+
+
+def polish(graded: bytearray, width: int, height: int, amount: float, plant: float, clear: int, taps: int, level: int) -> bytearray:
+    vivid = bytearray(len(graded))
+    for index in range(0, len(graded), 3):
+        src = tuple(channel / 255.0 for channel in graded[index : index + 3])
+        color = clear_pixel(vibrance(src, amount, plant), clear)
+        vivid[index : index + 3] = bytes(int(round(min(1.0, max(0.0, channel)) * 255)) for channel in color)
+    return apply_lamps(vivid, width, height, taps, level)
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     width, height = 480, 270
     night = scene(width, height, True)
     day = scene(width, height, False)
+    look = {
+        "quality": {"rain": 0.72, "layers": 2, "taps": 8, "level": 3, "clear": 3, "vibrance": 0.36, "plant": 0.28},
+        "performance": {"rain": 0.30, "layers": 1, "taps": 4, "level": 2, "clear": 2, "vibrance": 0.22, "plant": 0.14},
+    }
     frames = {}
-    lamps = {}
-    for edition, strength, layers, taps in (
-        ("quality", 0.72, 2, 8),
-        ("performance", 0.30, 1, 4),
-    ):
+    finished = {}
+    lamps_only = {}
+    for edition, spec in look.items():
         day_grade = apply_grade(day, width, height, edition)
         night_grade = apply_grade(night, width, height, edition)
-        day_lamps = apply_lamps(day_grade, width, height, taps, 0.88)
-        night_lamps = apply_lamps(night_grade, width, height, taps, 0.88)
-        rainy, _hits = apply_rain(night_grade, width, height, strength, layers)
-        frames[edition] = (day_grade, night_grade, rainy)
-        lamps[edition] = night_lamps
-        write_png(OUT / f"preview-{edition}-dia.png", width * 2 + 8, height, panel(day, day_lamps, width, height))
-        write_png(OUT / f"preview-{edition}-noite.png", width * 2 + 8, height, panel(night, night_lamps, width, height))
+        day_done = polish(day_grade, width, height, spec["vibrance"], spec["plant"], spec["clear"], spec["taps"], spec["level"])
+        night_done = polish(night_grade, width, height, spec["vibrance"], spec["plant"], spec["clear"], spec["taps"], spec["level"])
+        rainy, _hits = apply_rain(night_grade, width, height, spec["rain"], spec["layers"])
+        frames[edition] = (day_grade, night_grade, rainy, day_done)
+        finished[edition] = night_done
+        lamps_only[edition] = apply_lamps(night_grade, width, height, spec["taps"], spec["level"])
+        write_png(OUT / f"preview-{edition}-dia.png", width * 2 + 8, height, panel(day, day_done, width, height))
+        write_png(OUT / f"preview-{edition}-noite.png", width * 2 + 8, height, panel(night, night_done, width, height))
         write_png(OUT / f"preview-{edition}-chuva.png", width * 2 + 8, height, panel(night_grade, rainy, width, height))
     night_q = frames["quality"][1]
     night_p = frames["performance"][1]
@@ -268,35 +316,71 @@ def main() -> None:
         raise SystemExit(f"gotas deveriam preferir a borda ({border}) ao centro ({center})")
     sx, sy = MARK["sodium"]
     before = pixel(night_q, width, sx, sy)
-    after_q = pixel(lamps["quality"], width, sx, sy)
-    after_p = pixel(lamps["performance"], width, sx, sy)
-    if yellow_gap(after_q) >= yellow_gap(before) * 0.45:
-        raise SystemExit(f"o poste Quality continuou amarelo ({yellow_gap(before):.3f} -> {yellow_gap(after_q):.3f})")
-    if abs(luma(after_q) - luma(before)) > 0.02:
+    after_q = pixel(finished["quality"], width, sx, sy)
+    after_p = pixel(finished["performance"], width, sx, sy)
+    soft = pixel(apply_lamps(night_q, width, height, 8, 1), width, sx, sy)
+    if yellow_gap(after_q) > 0.05:
+        raise SystemExit(f"White LED continuou amarelo ({yellow_gap(before):.3f} -> {yellow_gap(after_q):.3f})")
+    if yellow_gap(after_p) <= yellow_gap(after_q) + 0.03:
+        raise SystemExit("Neutral precisa guardar mais calor que White LED")
+    if yellow_gap(after_p) >= yellow_gap(before) * 0.40:
+        raise SystemExit(f"Neutral ainda está amarelo demais ({yellow_gap(after_p):.3f})")
+    if yellow_gap(soft) <= yellow_gap(after_p):
+        raise SystemExit("Soft precisa ser mais quente que Neutral")
+    if abs(luma(after_q) - luma(before)) > 0.04:
         raise SystemExit("o branco do poste mudou a luminância e alimentaria o bloom")
-    if after_q[2] > luma(after_q) + 0.02 or after_q[2] > after_q[0] + 0.02:
+    if after_q[2] > after_q[0] + 0.02:
         raise SystemExit(f"o poste ficou azulado {tuple(round(c, 3) for c in after_q)}")
-    if max_delta(after_q, after_p) > 0.03:
-        raise SystemExit("Quality e Performance precisam do mesmo branco no núcleo do poste")
-    off = apply_lamps(night_q, width, height, 8, 0.0)
-    if pixel(off, width, sx, sy) != before:
-        raise SystemExit("Branco dos postes em zero deveria preservar o âmbar")
-    protected = ("window", "window_edge", "head", "neon", "red", "green", "amber", "blue", "street")
+    halo = pixel(finished["quality"], width, *MARK["halo"])
+    if yellow_gap(halo) < 0.18:
+        raise SystemExit(f"o halo do poste perdeu o calor ({tuple(round(c, 3) for c in halo)})")
+    protected = ("window", "head", "neon", "red", "green", "amber", "blue", "street")
     for name in protected:
         x, y = MARK[name]
-        delta = max_delta(pixel(night_q, width, x, y), pixel(lamps["quality"], width, x, y))
+        delta = max_delta(pixel(night_q, width, x, y), pixel(lamps_only["quality"], width, x, y))
         if delta > 0.03:
             raise SystemExit(f"{name} não deveria ser neutralizado ({delta:.3f})")
-    sunset = MARK["sunset"]
     day_q = frames["quality"][0]
-    day_lamps = apply_lamps(day_q, width, height, 8, 0.88)
-    sunset_delta = max_delta(pixel(day_q, width, *sunset), pixel(day_lamps, width, *sunset))
+    day_done = frames["quality"][3]
+    sunset_delta = max_delta(pixel(day_q, width, *MARK["sunset"]), pixel(apply_lamps(day_q, width, height, 8, 3), width, *MARK["sunset"]))
     if sunset_delta > 0.03:
-        raise SystemExit(f"o pôr do sol mudou de tom ({sunset_delta:.3f})")
+        raise SystemExit(f"o pôr do sol foi tratado como poste ({sunset_delta:.3f})")
+    haze_before = luma(pixel(day_q, width, *MARK["haze"]))
+    haze_after = luma(pixel(day_done, width, *MARK["haze"]))
+    sky_before = luma(pixel(day_q, width, *MARK["sky"]))
+    sky_after = luma(pixel(day_done, width, *MARK["sky"]))
+    if haze_after >= haze_before - 0.04:
+        raise SystemExit(f"a névoa do prédio distante não recuou ({haze_before:.3f} -> {haze_after:.3f})")
+    if (sky_before - haze_before) >= (sky_after - haze_after):
+        raise SystemExit("o horizonte não ganhou separação")
+    shadow_before = luma(pixel(night_q, width, *MARK["shadow"]))
+    shadow_after = luma(pixel(finished["quality"], width, *MARK["shadow"]))
+    if shadow_after < shadow_before - 0.03:
+        raise SystemExit("a limpeza do horizonte escureceu a sombra")
+    plant_before = saturation(pixel(day_q, width, *MARK["plant"]))
+    plant_after = saturation(pixel(day_done, width, *MARK["plant"]))
+    plant_perf = saturation(pixel(frames["performance"][3], width, *MARK["plant"]))
+    if plant_after < plant_before + 0.03:
+        raise SystemExit(f"a vegetação não ficou mais viva ({plant_before:.3f} -> {plant_after:.3f})")
+    if plant_perf >= plant_after:
+        raise SystemExit("Performance deveria saturar menos que Quality")
+    if plant_after > 0.62:
+        raise SystemExit(f"vegetação neon ({plant_after:.3f})")
+    vivid = vibrance(grade((0.22, 0.55, 0.16), "quality"), 0.36, 0.28)
+    if saturation(vivid) > 0.78:
+        raise SystemExit(f"verde já vivo passou do limite ({saturation(vivid):.3f})")
+    skin = vibrance(grade((0.76, 0.56, 0.46), "quality"), 0.36, 0.28)
+    skin_gain = saturation(skin) - saturation(grade((0.76, 0.56, 0.46), "quality"))
+    if skin_gain > plant_after - plant_before:
+        raise SystemExit("pele ganhou mais saturação que a vegetação")
+    car = pixel(day_done, width, *MARK["car"])
+    if max(car) > 0.98 and saturation(car) > 0.9:
+        raise SystemExit("carro estourou vermelho")
     print(
         f"previews ok desligado={off_hits} noite_gotas={night_hits} dia_gotas={day_hits} "
         f"fraca={light_hits} borda={border} centro={center} "
-        f"poste={tuple(round(c, 3) for c in after_q)}"
+        f"poste={tuple(round(c, 3) for c in after_q)} "
+        f"haze={haze_before:.3f}->{haze_after:.3f} planta={plant_before:.3f}->{plant_after:.3f}"
     )
 
 

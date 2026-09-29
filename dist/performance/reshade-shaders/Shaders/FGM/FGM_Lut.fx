@@ -1,5 +1,51 @@
-// Grade cinematográfica original. A cor sai de uma LUT gerada neste projeto.
+// Grade cinematográfica original. A LUT faz contraste e split. A vivacidade é seletiva.
 #include "FGM.fxh"
+
+uniform float ColorVibrance <
+    ui_type = "slider";
+    ui_min = 0.00;
+    ui_max = 0.60;
+    ui_step = 0.01;
+    ui_label = "Vivacidade";
+> = 0.36;
+
+uniform float PlantExtra <
+    ui_type = "slider";
+    ui_min = 0.00;
+    ui_max = 0.60;
+    ui_step = 0.01;
+    ui_label = "Verde da vegetação";
+> = 0.28;
+
+float3 FGM_Vibrant(float3 color)
+{
+    float luma = dot(color, float3(0.2126, 0.7152, 0.0722));
+    float peak = max(color.r, max(color.g, color.b));
+    float floorc = min(color.r, min(color.g, color.b));
+    float sat = (peak - floorc) / max(peak, 0.001);
+    float shadow = smoothstep(0.08, 0.22, luma);
+    float notWhite = 1.0 - smoothstep(0.78, 0.94, luma);
+    float headroom = 1.0 - smoothstep(0.42, 0.70, sat);
+    float rg = color.r - color.g;
+    float gb = color.g - color.b;
+    float skin = smoothstep(0.04, 0.12, rg) * (1.0 - smoothstep(0.18, 0.32, rg));
+    skin *= smoothstep(0.03, 0.10, gb);
+    skin *= smoothstep(0.20, 0.40, luma) * (1.0 - smoothstep(0.62, 0.82, luma));
+    skin *= smoothstep(0.10, 0.22, sat) * (1.0 - smoothstep(0.45, 0.65, sat));
+    float protect = 1.0 - 0.80 * saturate(skin);
+    float green = smoothstep(0.03, 0.14, color.g - max(color.r, color.b));
+    green *= 1.0 - smoothstep(0.55, 0.80, sat);
+    float gain = ColorVibrance * shadow * notWhite * headroom * protect * (1.0 + PlantExtra * green);
+    float3 outColor = luma + (color - luma) * (1.0 + gain);
+    float outPeak = max(outColor.r, max(outColor.g, outColor.b));
+    if (outPeak > 1.0)
+    {
+        float head = max(outPeak - luma, 0.001);
+        float room = max(1.0 - luma, 0.0);
+        outColor = luma + (outColor - luma) * (room / head);
+    }
+    return saturate(outColor);
+}
 
 texture2D FGM_LutTex < source = "fgm_performance_lut.png"; >
 {
@@ -37,7 +83,7 @@ float3 FGM_SampleLut(float3 color)
 float4 FGM_LutPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
 {
     float3 color = tex2D(ReShade::BackBuffer, uv).rgb;
-    return float4(FGM_SampleLut(color), 1.0);
+    return float4(FGM_Vibrant(FGM_SampleLut(color)), 1.0);
 }
 
 technique FGM_Lut

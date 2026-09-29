@@ -58,6 +58,10 @@ def main() -> None:
             fail(f"{edition}: chuva não pode ser anunciada como detecção automática")
         if manifest.get("effects", {}).get("street_lamps") != "local-approximation":
             fail(f"{edition}: postes não podem ser anunciados como detecção exata")
+        if manifest.get("effects", {}).get("clear_view") != "local-approximation":
+            fail(f"{edition}: horizonte não pode ser anunciado como leitura de profundidade")
+        if manifest.get("effects", {}).get("vibrance") != "selective":
+            fail(f"{edition}: vivacidade precisa ser seletiva")
         if manifest.get("kind") != "client-local":
             fail(f"{edition}: kind precisa ser client-local")
         if manifest.get("edition") != edition:
@@ -106,16 +110,22 @@ def main() -> None:
             fail(f"{edition}: FGM_Rain ainda usa heurística de cena escura")
         if "FGM_Lamps@FGM_Lamps.fx" not in enabled:
             fail(f"{edition}: FGM_Lamps precisa vir ligado")
-        if "LampWhite=0.880" not in preset_text:
-            fail(f"{edition}: o branco dos postes precisa ser o mesmo 0.880")
+        if "FGM_ClearView@FGM_ClearView.fx" not in enabled:
+            fail(f"{edition}: FGM_ClearView precisa vir ligado")
         if edition == "quality":
-            if "LAMP_TAPS=8" not in preset_text:
-                fail("quality precisa das 8 amostras ao redor do poste")
-            if enabled.index("FGM_Lamps@FGM_Lamps.fx") > enabled.index("FGM_Bloom@FGM_Bloom.fx"):
-                fail("os postes precisam entrar antes do bloom")
+            if "LAMP_TAPS=8" not in preset_text or "LampLevel=3" not in preset_text:
+                fail("quality precisa de White LED com 8 amostras")
+            if "ClearLevel=3" not in preset_text or "ColorVibrance=0.360" not in preset_text:
+                fail("quality precisa de horizonte forte e vivacidade 0.360")
+            if enabled.index("FGM_Lamps@FGM_Lamps.fx") < enabled.index("FGM_Bloom@FGM_Bloom.fx"):
+                fail("os postes precisam entrar depois do bloom para o núcleo não voltar amarelo")
+            if enabled.index("FGM_ClearView@FGM_ClearView.fx") > enabled.index("FGM_Bloom@FGM_Bloom.fx"):
+                fail("a limpeza do horizonte precisa entrar antes do bloom")
         if edition == "performance":
-            if "LAMP_TAPS=4" not in preset_text:
-                fail("performance precisa da variante de 4 amostras")
+            if "LAMP_TAPS=4" not in preset_text or "LampLevel=2" not in preset_text:
+                fail("performance precisa de Neutral com 4 amostras")
+            if "ClearLevel=2" not in preset_text or "ColorVibrance=0.220" not in preset_text:
+                fail("performance precisa de horizonte médio e vivacidade 0.220")
             if "FGM_Bloom" in preset_text:
                 fail("performance não pode ativar o bloom pesado")
         if edition == "quality" and "FGM_Bloom@FGM_Bloom.fx" not in preset_text:
