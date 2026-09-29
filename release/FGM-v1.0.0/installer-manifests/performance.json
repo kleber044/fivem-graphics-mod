@@ -65,8 +65,8 @@
       "source": "reshade-shaders/Shaders/FGM/FGM_ClearView.fx",
       "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
       "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ClearView.fx",
-      "sha256": "02ee3e9209b94acfaee81fa9d015e113e596d6ecfe7afbec3d31eaafc58be37d",
-      "bytes": 1486,
+      "sha256": "fa2fea2a3a23af70aa4ef80cdda01815e32cc436cf47d802658b6ce01518b573",
+      "bytes": 2366,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"
@@ -75,8 +75,8 @@
       "source": "reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
       "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
       "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
-      "sha256": "650b88254974a1ba06c15de82e6b634ae5df07a03e1cd770093d2a254a2621c4",
-      "bytes": 3045,
+      "sha256": "982d84dc1c87d8ddb9f9232a5bf569ef203298895d415c7b30a7815a3df496d5",
+      "bytes": 4005,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"

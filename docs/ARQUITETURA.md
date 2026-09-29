@@ -14,7 +14,7 @@ Performance, ativas: `FGM_Lut`, `FGM_ClearView`, `FGM_Lamps`, `FGM_Sharp`, `FGM_
 
 `FGM_Rain` está nas duas edições, mas fora de `Techniques=`. O preset só a lista em `TechniqueSorting=`, desmarcada. Enquanto estiver desmarcada, o passo não roda: menu, clima limpo e noite seca ficam sem gotas.
 
-A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o véu branco antes do bloom, para o halo não espalhar essa névoa. O bloom da Quality só entra acima do limiar 0,88, com quantidade 0,10, para camisa, nuvem e calçada não ganharem halo. `FGM_Lamps` entra depois do bloom: o núcleo do poste é neutralizado por último, senão o bloom devolve o amarelo para cima dele. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último.
+A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o véu do horizonte e o leite da noite antes do bloom, para esse véu não ser espalhado. O bloom da Quality só entra acima do limiar 0,88, com quantidade 0,10, para camisa, nuvem e calçada não ganharem halo. `FGM_Lamps` entra depois do bloom e troca o amarelo urbano por branco levemente frio, inclusive no halo e no chão. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último.
 
 ## LUT
 
@@ -26,15 +26,15 @@ A LUT não sabe a hora do jogo. Pixel escuro escurece um pouco. Pixel que já é
 
 ## Postes
 
-`FGM_Lamps.fx` tem três níveis no slider Postes: 1 Soft (0,62), 2 Neutral (0,82) e 3 White LED (1,00). Quality abre em White LED. Performance abre em Neutral. No White LED o núcleo vai até o branco da própria luminância, sem ganhar brilho e sem passar para o azul. O halo mais fraco não entra nessa conta e continua quente.
+`FGM_Lamps.fx` tem três níveis no slider Postes: 1 Soft (0,72), 2 Neutral (0,92) e 3 White LED (1,00). Quality abre em White LED. Performance abre em Neutral. O alvo é um branco levemente frio, com a mesma luminância do pixel. Não é azul e não é verde.
 
-O anel tem 32 pixels. Quality lê 8 amostras e tira a média; Performance lê 4. A média, em vez do ponto mais claro, deixa o núcleo passar mesmo quando o brilho em volta ainda é o halo. A faixa de cor é mais larga que a anterior, para pegar o âmbar do jogo, e continua cortando saturação alta de neon e semáforo.
+A cor que entra é amarelo ou laranja com saturação média: núcleo, halo, ponto distante e reflexo no asfalto. A sonda de 110 pixels procura um ponto escuro. Se a vizinhança toda está clara, o ajuste não corre, e o pôr do sol fica. Uma segunda sonda, de 28 pixels, deixa quieta uma área clara e plana, como uma janela grande. Quality lê 8 amostras em cada sonda. Performance lê 4.
 
-O shader não recebe o tipo da luz. Farol quase branco, neon, semáforo, emergência, janela grande e pôr do sol ficam de fora. Um poste maior que o anel continua âmbar. Uma janela quente minúscula pode ser tratada como poste. O manifesto marca `effects.street_lamps` como `local-approximation`.
+O shader não recebe o tipo da luz. Farol quase branco, neon, semáforo e freio ficam de fora pela cor. Uma janela quente e plana também fica. Um farol amarelo, parecido com poste, pode clarear. O manifesto marca `effects.street_lamps` como `local-approximation`.
 
 ## Horizonte
 
-`FGM_ClearView.fx` estima névoa branca por cor: luminância média-alta e saturação baixa. Não usa profundidade. O slider Horizonte vai de 0 a 3. Quality abre em 3, com força 0,20. Performance abre em 2, com força 0,13. O véu recua sem deixar o horizonte duro. Sombra, luz estourada e cor já saturada não entram. Não há kernel, para não desenhar halo. O manifesto marca `effects.clear_view` como `local-approximation`.
+`FGM_ClearView.fx` trata duas faixas, sem profundidade e sem kernel. O horizonte claro e pouco saturado usa força 0,20 na Quality e 0,13 na Performance. O leite da noite, entre cerca de 0,10 e 0,50 de luminância, usa 0,18 e 0,11. Nessa faixa o véu também perde o tom quente. Sombra abaixo de 0,10, luz estourada e cor já saturada não entram. O slider Horizonte vai de 0 a 3. O manifesto marca `effects.clear_view` como `local-approximation`.
 
 ## Chuva e sangue
 
