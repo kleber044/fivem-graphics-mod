@@ -24,9 +24,13 @@ Alguns jogadores precisam renomear `dxgi.dll` para `d3d11.dll` dentro de `plugin
 
 Pure Mode e anticheat podem bloquear a DLL. O FGM não contorna isso. Entre em outro servidor que permita mod gráfico local.
 
-## A chuva aparece em túnel ou não aparece na rua
+## Aparecem gotas sem chuva, ou no menu
 
-O efeito não sabe se o servidor marcou chuva. Cena escura e pouco colorida liga as gotas; cena clara desliga. Dá para baixar Força das gotas no overlay ou desligar só `FGM_Rain`.
+`FGM_Rain` não detecta o clima. Se a técnica estiver marcada no overlay, as gotas entram em qualquer quadro, inclusive no menu e com o céu limpo. Desmarque `FGM_Rain`. O preset de fábrica já a entrega desmarcada.
+
+## A chuva do jogo está na tela e não há gotas na lente
+
+Isso é o padrão. Abra o ReShade com Home e marque `FGM_Rain`. Força das gotas controla a intensidade. Desmarque de novo quando a chuva acabar.
 
 ## As duas edições parecem misturadas
 

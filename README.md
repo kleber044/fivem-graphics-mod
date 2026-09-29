@@ -6,6 +6,6 @@ No Windows, feche o FiveM e dê dois cliques em `Instalar-Quality.cmd` ou `Insta
 
 Não há resource de servidor. Quality e Performance não ficam ativas ao mesmo tempo.
 
-A chuva na lente é local e não lê o clima do servidor. Sangue ao tomar dano não faz parte do pacote: um shader não vê a vida do personagem, e leitura de memória não entra neste produto.
+`FGM_Rain` começa desligado. O ReShade local não detecta o clima do servidor nem o menu do FiveM, então não há gotas até o jogador marcar a técnica quando a chuva do jogo está na tela. Desmarcar some com elas. Sangue ao tomar dano não faz parte do pacote: um shader não vê a vida do personagem, e leitura de memória não entra neste produto.
 
 O detalhe está em `docs/`.

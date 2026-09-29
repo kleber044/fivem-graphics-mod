@@ -8,11 +8,13 @@ Não há script de servidor, NUI nem resource. Os shaders leem só a imagem fina
 
 ## Ordem
 
-Quality: `FGM_Lut`, `FGM_Bloom`, `FGM_Sharp`, `FGM_Vignette`, `FGM_Rain`.
+Quality, ativas: `FGM_Lut`, `FGM_Bloom`, `FGM_Sharp`, `FGM_Vignette`.
 
-Performance: a mesma lista sem `FGM_Bloom`, com nitidez, vinheta e chuva mais baixas.
+Performance, ativas: a mesma lista sem `FGM_Bloom`, com nitidez e vinheta mais baixas.
 
-A LUT vem primeiro. O bloom só soma luz acima do limiar 0,80. A nitidez vem depois. A vinheta não fecha o centro. A chuva fica por último e desloca a amostra da imagem na gota.
+`FGM_Rain` está nas duas edições, mas fora de `Techniques=`. O preset só a lista em `TechniqueSorting=`, desmarcada. Enquanto estiver desmarcada, o passo não roda: menu, clima limpo e noite seca ficam sem gotas.
+
+A LUT vem primeiro. O bloom só soma luz acima do limiar 0,80. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último e desloca a amostra da imagem na gota.
 
 ## LUT
 
@@ -22,7 +24,11 @@ A LUT não sabe a hora do jogo. Pixel escuro escurece um pouco. Pixel que já é
 
 ## Chuva e sangue
 
-`FGM_Rain.fx` desenha gotas procedurais com o timer do ReShade. A máscara exige cena escura, pouca saturação e distância do centro.
+`FGM_Rain.fx` desenha gotas na lente com o timer do ReShade: borda da tela, tamanho variado, movimento e um desvio curto da imagem atrás da gota. `RainStrength` é a intensidade. Quality guarda 0,72, duas camadas e distorção 1,00. Performance guarda 0,30, uma camada e distorção 0,35. Esses números só valem depois que a técnica é marcada.
+
+Não há leitura de clima. `GET_RAIN_LEVEL` e o estado do servidor não chegam a um shader de ReShade. Uma resource cliente foi descartada: este pacote não é resource. Profundidade do GTA fica bloqueada no multijogador e não serve de sinal. Ler memória, usar ASI ou hook de processo também fica de fora. Uma heurística de quadro escuro e pouco saturado foi removida: ela acendia gotas no menu, à noite, em túnel e em interior, e as escondia na chuva de dia.
+
+O manifesto marca `effects.screen_rain` como `manual-toggle`. Isso não é detecção automática.
 
 Não existe `FGM_Damage.fx`. O campo `effects.damage_blood` do manifesto fica `unavailable` até haver um sinal local que não leia memória do processo. O restante do mod não espera esse shader.
 

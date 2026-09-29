@@ -65,19 +65,17 @@ def apply_grade(rgb: bytearray, width: int, height: int, edition: str) -> bytear
     return out
 
 
-def rain_mask(x: int, y: int, width: int, height: int, luma: float, saturation: float, layers: int) -> float:
+def rain_mask(x: int, y: int, width: int, height: int, layers: int) -> float:
+    # A prévia mostra o efeito depois que o jogador liga FGM_Rain.
+    # O brilho da cena não entra: não há detecção de clima.
     u = x / (width - 1)
     v = y / (height - 1)
-    dark = max(0.0, min(1.0, (0.46 - luma) / 0.46))
-    dull = max(0.0, min(1.0, (0.42 - saturation) / 0.42))
-    weather = dark * (0.45 + 0.55 * dull)
     edge = smoothstep(0.15, 0.48, ((u - 0.5) ** 2 * 1.05 + (v - 0.46) ** 2) ** 0.5)
-    # gota estável para a prévia (sem tempo)
     cell = int(u * 28) + int(v * 18) * 13
     bead = 1.0 if (cell % 11 == 0 and (int(u * 90) + int(v * 40)) % 7 == 0) else 0.0
     if layers > 1 and cell % 17 == 0:
         bead = max(bead, 0.7)
-    return bead * weather * edge
+    return bead * edge
 
 
 def apply_rain(rgb: bytearray, width: int, height: int, strength: float, layers: int) -> tuple[bytearray, int]:
@@ -87,11 +85,7 @@ def apply_rain(rgb: bytearray, width: int, height: int, strength: float, layers:
         for x in range(width):
             index = (y * width + x) * 3
             color = [channel / 255.0 for channel in rgb[index : index + 3]]
-            luma = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2]
-            peak = max(color)
-            floorc = min(color)
-            saturation = (peak - floorc) / max(peak, 0.001)
-            mask = rain_mask(x, y, width, height, luma, saturation, layers) * strength
+            mask = rain_mask(x, y, width, height, layers) * strength
             if mask > 0.08:
                 hits += 1
                 wet = (0.78, 0.84, 0.90)
@@ -157,15 +151,26 @@ def main() -> None:
     if mean(night_p) >= mean(night) or mean(night_p) < mean(night_q):
         raise SystemExit("a noite Performance deveria ficar entre o original e a Quality")
     rainy = frames["quality"][2]
+    _off, off_hits = apply_rain(night_q, width, height, 0.0, 2)
     _day_rain, day_hits = apply_rain(frames["quality"][0], width, height, 0.72, 2)
     _night_rain, night_hits = apply_rain(night_q, width, height, 0.72, 2)
-    if night_hits <= day_hits:
-        raise SystemExit(f"chuva deveria marcar mais a noite ({night_hits}) do que o dia ({day_hits})")
+    _light, light_hits = apply_rain(night_q, width, height, 0.30, 1)
+    if off_hits != 0:
+        raise SystemExit(f"força zero deveria deixar a tela limpa ({off_hits})")
+    if day_hits == 0 or night_hits == 0:
+        raise SystemExit(f"com a técnica ligada as gotas precisam aparecer de dia ({day_hits}) e de noite ({night_hits})")
+    if day_hits != night_hits:
+        raise SystemExit(f"a gota não pode depender do brilho da cena (noite {night_hits}, dia {day_hits})")
+    if night_hits <= light_hits:
+        raise SystemExit(f"chuva mais forte deveria marcar mais pixels ({night_hits}) do que a fraca ({light_hits})")
     center = region_hits(width, height, night_q, rainy, True)
     border = region_hits(width, height, night_q, rainy, False)
     if border <= center:
         raise SystemExit(f"gotas deveriam preferir a borda ({border}) ao centro ({center})")
-    print(f"previews ok noite_gotas={night_hits} dia_gotas={day_hits} borda={border} centro={center}")
+    print(
+        f"previews ok desligado={off_hits} noite_gotas={night_hits} dia_gotas={day_hits} "
+        f"fraca={light_hits} borda={border} centro={center}"
+    )
 
 
 if __name__ == "__main__":
