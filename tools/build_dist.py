@@ -22,11 +22,13 @@ EDITIONS = {
         "lut": "fgm_quality_lut.png",
         "techniques": [
             "FGM_Lut@FGM_Lut.fx",
+            "FGM_Lamps@FGM_Lamps.fx",
             "FGM_Bloom@FGM_Bloom.fx",
             "FGM_Sharp@FGM_Sharp.fx",
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
+            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=8", "LampWhite": "0.880"},
             "FGM_Bloom.fx": {"BloomThreshold": "0.800", "BloomAmount": "0.180"},
             "FGM_Sharp.fx": {"SharpStrength": "0.340"},
             "FGM_Vignette.fx": {"VignetteAmount": "0.160"},
@@ -35,6 +37,7 @@ EDITIONS = {
         "shaders": [
             "FGM.fxh",
             "FGM_Lut.fx",
+            "FGM_Lamps.fx",
             "FGM_Bloom.fx",
             "FGM_Sharp.fx",
             "FGM_Vignette.fx",
@@ -46,10 +49,12 @@ EDITIONS = {
         "lut": "fgm_performance_lut.png",
         "techniques": [
             "FGM_Lut@FGM_Lut.fx",
+            "FGM_Lamps@FGM_Lamps.fx",
             "FGM_Sharp@FGM_Sharp.fx",
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
+            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=4", "LampWhite": "0.880"},
             "FGM_Sharp.fx": {"SharpStrength": "0.140"},
             "FGM_Vignette.fx": {"VignetteAmount": "0.060"},
             "FGM_Rain.fx": {"RainStrength": "0.300", "RainLayers": "1", "RainDistort": "0.350"},
@@ -57,6 +62,7 @@ EDITIONS = {
         "shaders": [
             "FGM.fxh",
             "FGM_Lut.fx",
+            "FGM_Lamps.fx",
             "FGM_Sharp.fx",
             "FGM_Vignette.fx",
             "FGM_Rain.fx",
@@ -210,6 +216,7 @@ def manifest(edition: str, spec: dict, folder: Path, files: list[tuple[str, str]
         },
         "effects": {
             "screen_rain": "manual-toggle",
+            "street_lamps": "local-approximation",
             "damage_blood": "unavailable",
         },
         "install_policy": {
@@ -362,6 +369,7 @@ def assemble_release() -> None:
                 "7. FGM_Rain começa desligado. Não há gotas no menu nem em clima limpo.",
                 "8. Quando chover no jogo, abra o ReShade com Home e marque FGM_Rain.",
                 "9. Força das gotas sobe a intensidade. Desmarque a técnica quando a chuva acabar.",
+                "10. Branco dos postes já vem em 0,88 nas duas edições. Zero desliga a correção.",
                 "",
                 "O ReShade 6.8.0 é baixado de https://reshade.me/ durante a instalação.",
                 "O binário não vem neste pacote.",

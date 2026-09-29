@@ -14,6 +14,7 @@
   },
   "effects": {
     "screen_rain": "manual-toggle",
+    "street_lamps": "local-approximation",
     "damage_blood": "unavailable"
   },
   "install_policy": {
@@ -42,8 +43,8 @@
       "source": "FGM-Quality.ini",
       "destination_dir": "{fivem_plugins}",
       "destination": "{fivem_plugins}/FGM-Quality.ini",
-      "sha256": "b379ac60364ce8522970f949df30d2cf10fe1e2ae98af61956640d543f5071c6",
-      "bytes": 433,
+      "sha256": "8341e6e7d9bf8d47fd7afa58a8f85640accad44f0252017081a7229537ac8b45",
+      "bytes": 547,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"
@@ -64,6 +65,16 @@
       "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Bloom.fx",
       "sha256": "931cfc488ca1d5129ef07646ecd16047044874e7b6e808f48292fe0009c82bdb",
       "bytes": 1951,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
+      "sha256": "3ddac152b92ff2ed3a3f60d6bacfc4fb9efe97546ddf1accceded6d12233d6bc",
+      "bytes": 2936,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"
@@ -123,6 +134,7 @@
     "{fivem_plugins}/FGM-Quality.ini",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Bloom.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
@@ -133,6 +145,7 @@
     "{fivem_plugins}/FGM-Quality.ini",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Bloom.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
     "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
