@@ -19,19 +19,19 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 
 A noite fica um pouco mais escura, com o preto ainda separado do zero para o detalhe não sumir. Cor que já está forte quase não sobe. Verde de vegetação recebe menos tinta azul da sombra.
 
-Céu, sol, poça, cone de farol e sombra do mundo continuam os que o servidor desenhou. O pacote só trata o quadro pronto. Na Quality, o que já está muito claro ganha halo. O núcleo do poste é neutralizado depois desse halo, e a luminância dele não sobe. Reflexo de rua molhada e brilho de poça são shaders do jogo; um pós-processo não troca esses materiais.
+Céu, sol, poça, cone de farol e sombra do mundo continuam os que o servidor desenhou. O pacote só trata o quadro pronto. Na Quality, o que já está muito claro ganha halo. A luz urbana amarela é neutralizada depois desse halo, e a luminância dela não sobe. Reflexo de rua molhada e brilho de poça são shaders do jogo; um pós-processo não troca esses materiais.
 
 ## Postes
 
-O núcleo quente e pequeno vai para branco de LED na Quality e para um branco ainda levemente quente na Performance. O halo externo, mais fraco, permanece âmbar. A luminância do núcleo não sobe, então o bloom não ganha energia. Como o ajuste roda depois do bloom, o amarelo do halo não é pintado de volta no centro.
+Núcleo, halo, ponto distante e reflexo amarelo no asfalto vão para branco levemente frio na Quality. Na Performance o caminho é o mesmo, com um resto menor de calor. A luminância não sobe, então o bloom não ganha energia.
 
-O ReShade só vê cor e vizinhança. Entram pixels bem claros, na faixa do âmbar de poste, com média ao redor mais escura. Ficam como estão farol quase branco, neon, semáforo, emergência, janela grande, céu, asfalto e pôr do sol.
+O ReShade só vê cor e vizinhança. Entra amarelo ou laranja de saturação média quando há escuridão a até 110 pixels. Ficam como estão farol quase branco, neon, semáforo, freio, janela clara e plana, céu de dia e pôr do sol. Um farol amarelo pode clarear junto com o poste.
 
-No overlay, `FGM_Lamps` tem o slider Postes: 1 Soft, 2 Neutral, 3 White LED. Desmarcar a técnica desliga. Performance usa menos amostras. Poste maior que o anel de 32 pixels não muda. Janela quente minúscula pode clarear.
+No overlay, `FGM_Lamps` tem o slider Postes: 1 Soft, 2 Neutral, 3 White LED. Desmarcar a técnica desliga. Performance usa menos amostras.
 
 ## Horizonte e cor
 
-`FGM_ClearView` baixa um pouco o véu branco-acinzentado do meio da escala. O horizonte fica mais legível e a névoa de clima fechado continua presente. Nível 0 desliga.
+`FGM_ClearView` baixa o véu claro do horizonte e o leite da noite na faixa escura e média. O leite noturno também perde o tom quente. A névoa de clima fechado continua presente, só menos leitosa. Nível 0 desliga.
 
 A vivacidade não é um saturado global. Meios-tons apagados sobem pouco. Verde, azul de céu e laranja já forte sobem menos ainda. Pele, branco neutro, sombra, carro e placa que já têm cor quase ficam como o jogo desenhou. O slider Vivacidade calibra isso. Quality é o preset principal, num ponto moderado. Performance repete o caminho com número menor. A joelha da LUT segura camisa, nuvem e calçada clara sem pintá-las de cinza.
 

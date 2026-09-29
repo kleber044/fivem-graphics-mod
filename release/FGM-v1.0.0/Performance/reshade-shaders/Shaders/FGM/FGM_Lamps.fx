@@ -1,6 +1,7 @@
-// Núcleo de poste. O ReShade não sabe o tipo da luz.
-// White LED leva o núcleo quente e pequeno até o branco da própria luminância.
-// O halo mais fraco fica de fora. Farol branco, neon, semáforo e janela grande também.
+// Iluminação urbana. O ReShade não sabe o que é poste.
+// Em cena escura, amarelo e laranja de baixa a média saturação vão para branco levemente frio.
+// Isso pega núcleo, halo e reflexo no asfalto.
+// Farol já branco, freio, semáforo e neon muito saturado ficam de fora.
 #include "FGM.fxh"
 
 #ifndef LAMP_TAPS
@@ -20,9 +21,9 @@ static const float3 FGM_LumaWeights = float3(0.2126, 0.7152, 0.0722);
 float FGM_LampStrength(int level)
 {
     if (level <= 1)
-        return 0.62;
+        return 0.72;
     if (level == 2)
-        return 0.82;
+        return 0.92;
     return 1.0;
 }
 
@@ -31,34 +32,58 @@ float FGM_LampChroma(float3 color)
     float peak = max(color.r, max(color.g, color.b));
     float floorc = min(color.r, min(color.g, color.b));
     float sat = (peak - floorc) / max(peak, 0.001);
-    float luma = dot(color, FGM_LumaWeights);
-    float bright = smoothstep(0.58, 0.68, luma);
+    float excess = min(color.r, color.g) - color.b;
+    float yellow = smoothstep(0.03, 0.10, excess);
     float ratio = color.g / max(color.r, 0.001);
-    float sodium = smoothstep(0.42, 0.56, ratio) * (1.0 - smoothstep(0.90, 0.98, ratio));
-    float blueDef = smoothstep(0.10, 0.22, min(color.r, color.g) - color.b);
-    float satOk = smoothstep(0.10, 0.20, sat) * (1.0 - smoothstep(0.78, 0.92, sat));
-    return bright * sodium * blueDef * satOk;
+    float notRed = smoothstep(0.42, 0.58, ratio);
+    float notGreen = 1.0 - smoothstep(0.0, 0.08, color.g - color.r);
+    float notNeon = 1.0 - smoothstep(0.84, 0.94, sat);
+    float hasCast = smoothstep(0.18, 0.34, sat);
+    return yellow * notRed * notGreen * notNeon * hasCast;
 }
 
-float FGM_AverageAround(float2 uv)
+float FGM_SampleLuma(float2 uv)
 {
-    float2 px = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT) * 32.0;
-    float around = 0.0;
-    float weight = 0.0;
-    around += dot(tex2D(ReShade::BackBuffer, uv + float2(px.x, 0.0)).rgb, FGM_LumaWeights);
-    around += dot(tex2D(ReShade::BackBuffer, uv - float2(px.x, 0.0)).rgb, FGM_LumaWeights);
-    around += dot(tex2D(ReShade::BackBuffer, uv + float2(0.0, px.y)).rgb, FGM_LumaWeights);
-    around += dot(tex2D(ReShade::BackBuffer, uv - float2(0.0, px.y)).rgb, FGM_LumaWeights);
-    weight += 4.0;
+    return dot(tex2D(ReShade::BackBuffer, uv).rgb, FGM_LumaWeights);
+}
+
+void FGM_Probe(float2 uv, float radius, out float darkest, out float brightest)
+{
+    float2 px = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT) * radius;
+    float sampleLuma = FGM_SampleLuma(uv + float2(px.x, 0.0));
+    darkest = sampleLuma;
+    brightest = sampleLuma;
+    sampleLuma = FGM_SampleLuma(uv - float2(px.x, 0.0));
+    darkest = min(darkest, sampleLuma);
+    brightest = max(brightest, sampleLuma);
+    sampleLuma = FGM_SampleLuma(uv + float2(0.0, px.y));
+    darkest = min(darkest, sampleLuma);
+    brightest = max(brightest, sampleLuma);
+    sampleLuma = FGM_SampleLuma(uv - float2(0.0, px.y));
+    darkest = min(darkest, sampleLuma);
+    brightest = max(brightest, sampleLuma);
 #if LAMP_TAPS > 4
     float2 diagonal = px * 0.7071;
-    around += dot(tex2D(ReShade::BackBuffer, uv + float2(diagonal.x, diagonal.y)).rgb, FGM_LumaWeights);
-    around += dot(tex2D(ReShade::BackBuffer, uv + float2(-diagonal.x, diagonal.y)).rgb, FGM_LumaWeights);
-    around += dot(tex2D(ReShade::BackBuffer, uv + float2(diagonal.x, -diagonal.y)).rgb, FGM_LumaWeights);
-    around += dot(tex2D(ReShade::BackBuffer, uv + float2(-diagonal.x, -diagonal.y)).rgb, FGM_LumaWeights);
-    weight += 4.0;
+    sampleLuma = FGM_SampleLuma(uv + float2(diagonal.x, diagonal.y));
+    darkest = min(darkest, sampleLuma);
+    brightest = max(brightest, sampleLuma);
+    sampleLuma = FGM_SampleLuma(uv + float2(-diagonal.x, diagonal.y));
+    darkest = min(darkest, sampleLuma);
+    brightest = max(brightest, sampleLuma);
+    sampleLuma = FGM_SampleLuma(uv + float2(diagonal.x, -diagonal.y));
+    darkest = min(darkest, sampleLuma);
+    brightest = max(brightest, sampleLuma);
+    sampleLuma = FGM_SampleLuma(uv + float2(-diagonal.x, -diagonal.y));
+    darkest = min(darkest, sampleLuma);
+    brightest = max(brightest, sampleLuma);
 #endif
-    return around / weight;
+}
+
+float3 FGM_CoolWhite(float luma)
+{
+    float3 bias = float3(0.96, 1.00, 1.05);
+    float biased = max(dot(bias, FGM_LumaWeights), 0.001);
+    return bias * (luma / biased);
 }
 
 float4 FGM_LampsPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
@@ -68,11 +93,21 @@ float4 FGM_LampsPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     if (chroma <= 0.001)
         return float4(color, 1.0);
 
+    float farDark;
+    float farBright;
+    FGM_Probe(uv, 110.0, farDark, farBright);
+    float nearDark;
+    float nearBright;
+    FGM_Probe(uv, 28.0, nearDark, nearBright);
+    float night = 1.0 - smoothstep(0.12, 0.28, farDark);
     float luma = dot(color, FGM_LumaWeights);
-    float isolated = smoothstep(0.06, 0.18, luma - FGM_AverageAround(uv));
-    float amount = chroma * isolated * FGM_LampStrength(LampLevel);
-    float3 neutral = float3(luma, luma, luma);
-    return float4(saturate(lerp(color, neutral, amount)), 1.0);
+    float flat = 1.0 - smoothstep(0.04, 0.14, nearBright - nearDark);
+    float windowLike = flat * smoothstep(0.48, 0.62, luma);
+    float amount = chroma * night * (1.0 - windowLike) * FGM_LampStrength(LampLevel);
+    if (amount <= 0.001)
+        return float4(color, 1.0);
+
+    return float4(saturate(lerp(color, FGM_CoolWhite(luma), amount)), 1.0);
 }
 
 technique FGM_Lamps
