@@ -92,7 +92,7 @@ def apply_rain(rgb: bytearray, width: int, height: int, strength: float, layers:
             floorc = min(color)
             saturation = (peak - floorc) / max(peak, 0.001)
             mask = rain_mask(x, y, width, height, luma, saturation, layers) * strength
-            if mask > 0.2:
+            if mask > 0.08:
                 hits += 1
                 wet = (0.78, 0.84, 0.90)
                 mixed = [color[i] * (1.0 - mask * 0.55) + wet[i] * (mask * 0.55) for i in range(3)]
@@ -114,31 +114,58 @@ def panel(left: bytearray, right: bytearray, width: int, height: int) -> bytes:
     return bytes(rgb)
 
 
+def region_hits(width: int, height: int, before: bytearray, after: bytearray, center: bool) -> int:
+    hits = 0
+    for y in range(height):
+        for x in range(width):
+            u = x / (width - 1)
+            v = y / (height - 1)
+            edge = ((u - 0.5) ** 2 + (v - 0.46) ** 2) ** 0.5
+            inside = edge < 0.18 if center else edge > 0.34
+            if not inside:
+                continue
+            index = (y * width + x) * 3
+            if before[index : index + 3] != after[index : index + 3]:
+                hits += 1
+    return hits
+
+
+def mean(buf: bytearray) -> float:
+    return sum(buf) / len(buf)
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    width, height = 320, 180
+    width, height = 480, 270
     night = scene(width, height, True)
     day = scene(width, height, False)
-    night_q = apply_grade(night, width, height, "quality")
-    day_q = apply_grade(day, width, height, "quality")
-    night_p = apply_grade(night, width, height, "performance")
-    rainy, night_hits = apply_rain(night_q, width, height, 0.8, 2)
-    sunny, day_hits = apply_rain(day_q, width, height, 0.8, 2)
-    write_png(OUT / "preview-noite-quality.png", width * 2 + 8, height, panel(night, night_q, width, height))
-    write_png(OUT / "preview-dia-quality.png", width * 2 + 8, height, panel(day, day_q, width, height))
-    write_png(OUT / "preview-noite-performance.png", width * 2 + 8, height, panel(night, night_p, width, height))
-    write_png(OUT / "preview-chuva-noite.png", width * 2 + 8, height, panel(night_q, rainy, width, height))
-    if night_hits <= day_hits:
-        raise SystemExit(f"chuva deveria marcar mais a noite ({night_hits}) do que o dia ({day_hits})")
-    # noite quality fica mais escura que o quadro original
-    def mean(buf: bytearray) -> float:
-        return sum(buf) / len(buf)
-
+    frames = {}
+    for edition, strength, layers in (("quality", 0.72, 2), ("performance", 0.30, 1)):
+        day_grade = apply_grade(day, width, height, edition)
+        night_grade = apply_grade(night, width, height, edition)
+        rainy, _hits = apply_rain(night_grade, width, height, strength, layers)
+        frames[edition] = (day_grade, night_grade, rainy)
+        write_png(OUT / f"preview-{edition}-dia.png", width * 2 + 8, height, panel(day, day_grade, width, height))
+        write_png(OUT / f"preview-{edition}-noite.png", width * 2 + 8, height, panel(night, night_grade, width, height))
+        write_png(OUT / f"preview-{edition}-chuva.png", width * 2 + 8, height, panel(night_grade, rainy, width, height))
+    night_q = frames["quality"][1]
+    night_p = frames["performance"][1]
     if mean(night_q) >= mean(night):
         raise SystemExit("a grade Quality não escureceu a cena noturna")
     if mean(night_q) < mean(night) * 0.80:
         raise SystemExit("a grade Quality escureceu a noite além do leve")
-    print(f"previews ok noite_gotas={night_hits} dia_gotas={day_hits}")
+    if mean(night_p) >= mean(night) or mean(night_p) < mean(night_q):
+        raise SystemExit("a noite Performance deveria ficar entre o original e a Quality")
+    rainy = frames["quality"][2]
+    _day_rain, day_hits = apply_rain(frames["quality"][0], width, height, 0.72, 2)
+    _night_rain, night_hits = apply_rain(night_q, width, height, 0.72, 2)
+    if night_hits <= day_hits:
+        raise SystemExit(f"chuva deveria marcar mais a noite ({night_hits}) do que o dia ({day_hits})")
+    center = region_hits(width, height, night_q, rainy, True)
+    border = region_hits(width, height, night_q, rainy, False)
+    if border <= center:
+        raise SystemExit(f"gotas deveriam preferir a borda ({border}) ao centro ({center})")
+    print(f"previews ok noite_gotas={night_hits} dia_gotas={day_hits} borda={border} centro={center}")
 
 
 if __name__ == "__main__":

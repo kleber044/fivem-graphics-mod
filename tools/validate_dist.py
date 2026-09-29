@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -17,6 +18,8 @@ REQUIRED_DOCS = [
     "LICENCAS.md",
     "ARQUITETURA.md",
     "INTEGRACAO_INSTALADOR.md",
+    "TROUBLESHOOTING.md",
+    "TESTES.md",
 ]
 FORBIDDEN_NAMES = {
     "fxmanifest.lua",
@@ -47,6 +50,10 @@ def main() -> None:
         if not manifest_path.is_file():
             fail(f"manifesto ausente: {manifest_path}")
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("schema") != 2:
+            fail(f"{edition}: schema precisa ser 2")
+        if manifest.get("effects", {}).get("damage_blood") != "unavailable":
+            fail(f"{edition}: sangue por dano não pode ser anunciado como disponível")
         if manifest.get("kind") != "client-local":
             fail(f"{edition}: kind precisa ser client-local")
         if manifest.get("edition") != edition:
@@ -56,6 +63,9 @@ def main() -> None:
             source = folder / entry["source"]
             if not source.is_file():
                 fail(f"origem inexistente: {source}")
+            digest = hashlib.sha256(source.read_bytes()).hexdigest()
+            if entry.get("sha256") != digest:
+                fail(f"sha256 divergente: {source}")
             if "backup_if_exists" not in entry or "restore_on_uninstall" not in entry:
                 fail(f"entrada sem backup/restauração: {entry['source']}")
             if not entry["destination"].startswith("{fivem_plugins}/"):
@@ -105,6 +115,20 @@ def main() -> None:
     for path in banned:
         if path.exists():
             fail(f"resto de resource de servidor: {path}")
+    release = ROOT / "release" / "FGM-v1.0.0"
+    if not release.is_dir():
+        fail("release/FGM-v1.0.0 ausente")
+    for name in ("Instalar-FGM.ps1", "fgm-install-lib.ps1", "reshade-official.json", "COMO-TESTAR.txt"):
+        if not (release / name).is_file():
+            fail(f"release sem {name}")
+    for edition in ("Quality", "Performance"):
+        if not (release / edition / "manifest.json").is_file():
+            fail(f"release sem {edition}")
+    for path in list(release.rglob("*")) + list(DIST.rglob("*")):
+        if path.name in FORBIDDEN_NAMES or path.name.lower() in {"dxgi.dll", "d3d11.dll", "reshade64.dll"}:
+            fail(f"arquivo proibido no pacote: {path}")
+        if path.suffix.lower() == ".exe":
+            fail(f"executável dentro do pacote: {path}")
     print("pacote local ok")
 
 

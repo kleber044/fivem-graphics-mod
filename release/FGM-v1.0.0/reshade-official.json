@@ -1,0 +1,15 @@
+{
+  "name": "ReShade",
+  "author": "Patrick Mours (crosire)",
+  "version": "6.8.0",
+  "license": "BSD-3-Clause",
+  "commercial_use": true,
+  "bundled": false,
+  "setup_url": "https://reshade.me/downloads/ReShade_Setup_6.8.0.exe",
+  "setup_referer": "https://reshade.me/",
+  "setup_sha256": "207aea16205fbf952bc8fe1879966672454cf04002e7ad34237c7990a5b3c0b4",
+  "dll_entry": "ReShade64.dll",
+  "dll_sha256": "b2945c29e7095491a901746b400e58db9b1592ab092bacf2a888ce37f02d08da",
+  "dll_size": 5255448,
+  "install_as": "dxgi.dll"
+}

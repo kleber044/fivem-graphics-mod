@@ -1,0 +1,1 @@
+Os presets FGM-Quality.ini e FGM-Performance.ini são gerados por tools/build_dist.py a partir da tabela de edições.
