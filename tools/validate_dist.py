@@ -115,8 +115,10 @@ def main() -> None:
         if edition == "quality":
             if "LAMP_TAPS=8" not in preset_text or "LampLevel=3" not in preset_text:
                 fail("quality precisa de White LED com 8 amostras")
-            if "ClearLevel=3" not in preset_text or "ColorVibrance=0.360" not in preset_text:
-                fail("quality precisa de horizonte forte e vivacidade 0.360")
+            if "ClearLevel=3" not in preset_text or "ColorVibrance=0.140" not in preset_text:
+                fail("quality precisa de horizonte 3 e vivacidade 0.140")
+            if "BloomThreshold=0.880" not in preset_text or "BloomAmount=0.100" not in preset_text:
+                fail("quality precisa segurar o bloom das superfícies claras")
             if enabled.index("FGM_Lamps@FGM_Lamps.fx") < enabled.index("FGM_Bloom@FGM_Bloom.fx"):
                 fail("os postes precisam entrar depois do bloom para o núcleo não voltar amarelo")
             if enabled.index("FGM_ClearView@FGM_ClearView.fx") > enabled.index("FGM_Bloom@FGM_Bloom.fx"):
@@ -124,8 +126,8 @@ def main() -> None:
         if edition == "performance":
             if "LAMP_TAPS=4" not in preset_text or "LampLevel=2" not in preset_text:
                 fail("performance precisa de Neutral com 4 amostras")
-            if "ClearLevel=2" not in preset_text or "ColorVibrance=0.220" not in preset_text:
-                fail("performance precisa de horizonte médio e vivacidade 0.220")
+            if "ClearLevel=2" not in preset_text or "ColorVibrance=0.080" not in preset_text:
+                fail("performance precisa de horizonte 2 e vivacidade 0.080")
             if "FGM_Bloom" in preset_text:
                 fail("performance não pode ativar o bloom pesado")
         if edition == "quality" and "FGM_Bloom@FGM_Bloom.fx" not in preset_text:

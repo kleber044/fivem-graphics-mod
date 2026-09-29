@@ -32,7 +32,7 @@ float FGM_LampChroma(float3 color)
     float floorc = min(color.r, min(color.g, color.b));
     float sat = (peak - floorc) / max(peak, 0.001);
     float luma = dot(color, FGM_LumaWeights);
-    float bright = smoothstep(0.60, 0.74, luma);
+    float bright = smoothstep(0.58, 0.68, luma);
     float ratio = color.g / max(color.r, 0.001);
     float sodium = smoothstep(0.42, 0.56, ratio) * (1.0 - smoothstep(0.90, 0.98, ratio));
     float blueDef = smoothstep(0.10, 0.22, min(color.r, color.g) - color.b);
