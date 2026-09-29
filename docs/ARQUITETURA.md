@@ -1,55 +1,55 @@
 # Arquitetura
 
-Um único resource entrega as duas versões. Quality é o padrão. Performance reduz bloom, distância de sombra, partículas de chuva, reflexo e quantidade de gotas na tela.
+O produto é um preset de pós-processamento. O FiveM desenha o quadro; o ReShade, carregado de `plugins`, aplica os shaders FGM nessa imagem. Não há script Lua, NUI, resource nem arquivo de servidor.
 
-O resource não abre servidor, não fala com o portal Cfx.re e não lê chave nenhuma.
+```text
+jogo (DX11) → ReShade em plugins\dxgi.dll → técnicas do preset FGM → tela
+```
 
-## Mapa dos arquivos
+Os shaders leem só `ReShade::BackBuffer`. Não pedem buffer de profundidade, então continuam válidos quando o servidor ou o cliente bloqueia depth.
 
-| Arquivo | Função |
-| --- | --- |
-| `fxmanifest.lua` | Declara scripts, NUI e os XML de timecycle. |
-| `shared/config.lua` | Limiar de chuva, força do timecycle e custo de cada versão (sombra, luz, gotas). |
-| `shared/profiles.lua` | Traduz hora do relógio em dia, golden hour ou noite, e escolhe o modifier. |
-| `shared/timecycle.lua` | Valores de cor, céu, bloom, sombra e reflexo. Fonte do XML. |
-| `shared/visual_settings.lua` | Farol, corona, bloom, poça, luz distante e chuva, mais a tabela `restore`. |
-| `timecycle/quality.xml` | Modifiers `fgm_quality_day`, `fgm_quality_golden`, `fgm_quality_night`, `fgm_quality_rain`. |
-| `timecycle/performance.xml` | Os quatro equivalents `fgm_perf_*`. |
-| `client/main.lua` | Comando `/grafico`, relógio, clima e interior. |
-| `client/visuals.lua` | Aplica e limpa timecycle, visual settings e trilha de chuva. |
-| `client/screen.lua` | Avisa a NUI sobre chuva, dano e vida baixa. |
-| `server/main.lua` | Só registra a subida do resource e o convar padrão. |
-| `nui/` | Gotas e sangue. Não captura mouse nem teclado. |
-| `optional/reshade/` | Presets opcionais. O resource funciona sem eles. |
-| `backup/visualsettings-restauracao.txt` | Cópia legível dos valores de restauração. |
-| `tools/sync_timecycle_xml.py` | Regenera o XML a partir do Lua. |
-| `tools/test_profiles.lua` | Testa horário, nomes e a diferença Quality vs Performance. Roda fora do jogo. |
+## Ordem das técnicas
 
-## Como o visual é escolhido
+Quality: `FGM_Lut`, `FGM_Bloom`, `FGM_Sharp`, `FGM_Vignette`, `FGM_Rain`.
 
-A cada ciclo o cliente lê a hora e o clima.
+Performance: a mesma lista sem `FGM_Bloom`. Nitidez, vinheta e chuva usam valores menores no `.ini`.
 
-- 5h–8h e 17h–20h usam o modifier golden (nascer e pôr do sol).
-- 20h–5h usa a noite, mais escura, com ambiente artificial um pouco mais alto para poste e janela.
-- O resto do dia usa o modifier de dia.
-- `RAIN`, `THUNDER`, `CLEARING` ou `GetRainLevel` acima de `0.15` ligam o modifier extra de chuva, as poças e as gotas.
-- Interior reduz a força do timecycle e esconde as gotas.
-- Dentro de veículo as gotas diminuem, como para-brisa, e não cobrem o meio da tela.
+A LUT vem primeiro para a cor já estar definida. O bloom só soma luz em pixels que continuam muito claros. A nitidez vem depois do bloom para não acentuar o halo. A vinheta escurece a borda sem fechar o centro. A chuva fica por último para a gota não ser afiada de novo.
 
-Quality mantém bloom baixo de propósito (`postfx_intensity_bloom` 0.18 de dia, limiar de brilho alto). Performance fica abaixo disso e encurta `dir_shadow_distance_multiplier`.
+## LUT
 
-## Efeitos de tela
+`tools/build_dist.py` gera uma LUT 32×32×32 em faixa horizontal: largura 1024, altura 32. O eixo X é `fatia azul * 32 + vermelho`; o eixo Y é o verde. `FGM_Lut.fx` amostra as duas fatias vizinhas e interpola.
 
-A NUI é um HTML transparente.
+A função `grade()` é a fonte da cor, aplicada no mesmo espaço sRGB que o shader lê:
 
-- Chuva: riscos e gotas paradas nas bordas. Uma máscara radial deixa o centro limpo. Quality usa 22 riscos; Performance usa 9.
-- Sangue: só depois de um dano de pelo menos 3 pontos de vida ou de colete. As manchas nascem nas bordas, somem em cerca de 2,3 segundos e não passam de um punhado ao mesmo tempo.
-- Vida baixa: vinheta vermelha fraca, no máximo 0,55 de opacidade, só quando a vida útil cai de 45%.
+- Quality: contraste 1,08 só a partir dos meios-tons, sombra cerca de 6% mais escura com tinta fria, luz com tinta quente, saturação 0,93.
+- Performance: contraste 1,04, sombra cerca de 3% mais escura, a mesma direção de cor, saturação 0,96.
 
-## ReShade
+Uma LUT não sabe a hora do jogo. “Noite mais escura” significa que pixel escuro recebe um escurecimento curto, sem ir para o preto. “Pôr do sol” significa que pixel já claro esquenta um pouco, sem saturação estourada. Céu, nuvem e sol continuam os do servidor; só a cor do quadro muda.
 
-`optional/reshade/Quality.ini` pede nitidez leve, bloom baixo e vinheta curta. `Performance.ini` deixa só um pouco de nitidez, para custar um passe a menos. Nenhum dos dois aumenta saturação de propósito. Os shaders vêm da instalação oficial do ReShade; este repositório não inclui o programa.
+## Bloom, nitidez, vinheta, chuva
 
-## O que só o cliente FiveM confirma
+- `FGM_Bloom.fx` ignora pixel abaixo do limiar (0,78 na Quality). Farol e poste que já estão claros ganham halo. O resto da rua não é lavado.
+- `FGM_Sharp.fx` é uma máscara de quatro vizinhos. Não é o CAS da AMD.
+- `FGM_Vignette.fx` usa a distância ao centro.
+- `FGM_Rain.fx` desenha gotas procedurais com o `timer` do ReShade. A máscara exige cena escura, pouca saturação e distância do centro. Não consulta o clima do jogo.
 
-Sintaxe, XML e a prévia das gotas podem ser checados fora do jogo. O encaixe com o timecycle do GTA, o farol e a chuva do mundo pedem um teste manual no cliente, com `/grafico quality` e `/grafico performance`.
+## Sangue
+
+Não há shader de sangue. A limitação está em `COMPATIBILIDADE.md`.
+
+## Pastas
+
+```text
+src/shaders/          fonte dos .fx e do FGM.fxh
+tools/build_dist.py   gera dist/quality e dist/performance
+tools/validate_dist.py
+tools/apply_manifest.py
+tools/preview_grade.py
+dist/<edição>/manifest.json
+dist/<edição>/FGM-*.ini
+dist/<edição>/reshade-shaders/...
+docs/
+```
+
+O manifesto é o contrato do instalador: origem no pacote, pasta e arquivo de destino no PC, backup e restauração.

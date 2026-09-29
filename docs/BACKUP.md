@@ -1,36 +1,39 @@
 # Backup
 
-Este pacote não substitui arquivos originais do GTA V nem do FiveM. O visual entra e sai pela sessão do resource.
+O pacote não modifica arquivo do GTA V. O risco é substituir, dentro de `plugins`, um shader ou preset que o jogador já tinha com o mesmo caminho.
 
-## O que fica guardado no projeto
+## O que guardar antes de instalar
 
-`backup/visualsettings-restauracao.txt` lista cada chave que o resource altera com `SetVisualSettingFloat`, com o valor aplicado quando o resource para ou quando o jogador usa `/grafico desligar`.
+Faça uma cópia da pasta inteira, que é o jeito mais simples de voltar atrás:
 
-A mesma tabela está em `shared/visual_settings.lua`, no campo `restore`. Os perfis Quality e Performance só escrevem chaves que existem nessa lista, para a parada conseguir reverter o que o resource ligou.
-
-`SetVisualSettingFloat` não grava disco. Fechar o FiveM faz o cliente ler de novo o `visualsettings.dat` da instalação do jogo. Essa é a restauração completa.
-
-## Antes de instalar em um servidor que já tem outro visual
-
-Guarde a pasta de resources e o `server.cfg` atual:
-
-```bash
-tar -czf backup-resources.tgz resources server.cfg
+```text
+%LOCALAPPDATA%\FiveM\FiveM.app\plugins
 ```
 
-Se outro resource já substitui `visualsettings.dat` ou timecycle com o mesmo nome de modifier, anote a ordem dos `ensure`. Este pacote usa modifiers próprios (`fgm_quality_*` e `fgm_perf_*`) e não reaproveita o nome dos XML originais do jogo (`w_clear.xml`, `w_rain.xml` e os demais).
+Se for editar o aviso do ReShade no F8, copie também:
 
-## Se você já tinha trocado arquivos do jogo manualmente
+```text
+%LOCALAPPDATA%\FiveM\FiveM.app\CitizenFX.ini
+```
 
-Isso fica fora deste resource. Para voltar ao original do GTA:
+## O que o manifesto marca para backup
 
-1. Feche o FiveM e o jogo.
-2. Na Steam ou no Rockstar Launcher, use a verificação de integridade dos arquivos do GTA V.
-3. Apague presets ReShade antigos se eles ainda estiverem selecionados.
-4. Só então instale este resource.
+Todo item em `files` tem `backup_if_exists: true`. A lista pronta está em `backup_files` no mesmo JSON.
 
-Não copie um `visualsettings.dat` de pacote de terceiros para dentro desta pasta. O projeto não distribui esse arquivo.
+A regra é: se o destino **já existe**, copiar esse arquivo para a pasta de backup do instalador, preservando o caminho relativo, e só então gravar o arquivo novo. Se o destino não existe, não há backup e a desinstalação apaga o arquivo.
 
-## Timecycle
+Arquivos que o manifesto manda não tocar, mesmo que estejam na pasta:
 
-Os XML em `timecycle/` são modifiers novos, gerados de `shared/timecycle.lua`. Eles não são cópia dos XML do jogo. Apagar o resource tira esses modifiers do cliente no próximo carregamento.
+- `{fivem_plugins}\ReShade.ini`
+- `{fivem_plugins}\dxgi.dll`
+- `{fivem_plugins}\d3d11.dll`
+- `%LOCALAPPDATA%\FiveM\FiveM.app\CitizenFX.ini`
+- `{gta_root}\update\update.rpf`
+
+`{gta_root}` é a pasta do GTA V onde está `GTA5.exe`. Nada deste produto é gravado lá.
+
+## Onde o teste deste repositório guarda o backup
+
+`tools/apply_manifest.py` grava em `--backup/<edição>/files/` e um `receipt.json` ao lado. A desinstalação só restaura o que esse recibo marcou como `backed_up`.
+
+Não reutilize um recibo de outra edição nem de outro PC.

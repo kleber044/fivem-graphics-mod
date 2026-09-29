@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "package": "fgm-performance",
+  "version": "1.0.0",
+  "edition": "performance",
+  "kind": "client-local",
+  "preset": "FGM-Performance.ini",
+  "tokens": {
+    "fivem_plugins": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\plugins",
+    "fivem_plugins_explorer_name": "FiveM Application Data\\plugins"
+  },
+  "external_dependencies": [
+    {
+      "name": "ReShade",
+      "bundled": false,
+      "required_files_not_shipped": [
+        "dxgi.dll",
+        "ReShade.ini"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "source": "FGM-Performance.ini",
+      "destination_dir": "{fivem_plugins}",
+      "destination": "{fivem_plugins}/FGM-Performance.ini",
+      "backup_if_exists": true,
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM.fxh",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
+      "backup_if_exists": true,
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+      "backup_if_exists": true,
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+      "backup_if_exists": true,
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+      "backup_if_exists": true,
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+      "backup_if_exists": true,
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Textures/FGM/fgm_performance_lut.png",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Textures/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_performance_lut.png",
+      "backup_if_exists": true,
+      "restore_on_uninstall": "restore_backup_or_delete"
+    }
+  ],
+  "backup_files": [
+    "{fivem_plugins}/FGM-Performance.ini",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+    "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_performance_lut.png"
+  ],
+  "restore_on_uninstall": [
+    "{fivem_plugins}/FGM-Performance.ini",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+    "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_performance_lut.png"
+  ],
+  "do_not_touch": [
+    "{fivem_plugins}\\ReShade.ini",
+    "{fivem_plugins}\\dxgi.dll",
+    "{fivem_plugins}\\d3d11.dll",
+    "%LOCALAPPDATA%\\FiveM\\FiveM.app\\CitizenFX.ini",
+    "{gta_root}\\update\\update.rpf"
+  ]
+}

@@ -1,38 +1,26 @@
-# fivem-graphics-mod
+# FGM — mod gráfico local para FiveM
 
-Pacote gráfico para FiveM com visual realista e cinematográfico. O resource aplica o look em tempo real. Ele não substitui arquivos do jogo e não usa chave de servidor.
+Pacote visual **client-side** para o PC do jogador. Ele entra junto com o ReShade na pasta `plugins` do FiveM e vale em qualquer servidor que não bloqueie mod gráfico local.
 
-Há duas versões no mesmo resource:
+Não existe `fxmanifest.lua`, `server.cfg` nem script de servidor. O dono da cidade não instala nada e o jogador não precisa de permissão administrativa.
 
-| Versão | Comando | O que muda |
-| --- | --- | --- |
-| Quality | `/grafico quality` | Mais cor, céu, reflexo, chuva e nitidez. É o padrão. |
-| Performance | `/grafico performance` | Menos bloom, sombra mais curta, menos partículas e menos gotas na tela. |
+Há duas edições prontas para copiar:
 
-## O que o mod melhora
+| Pasta | Uso |
+| --- | --- |
+| `dist/quality` | Melhor imagem: LUT mais marcada, bloom curto, nitidez maior, chuva em duas camadas. |
+| `dist/performance` | O mesmo estilo, sem bloom, com nitidez, vinheta e chuva reduzidas. |
 
-- Iluminação, cor e contraste, com saturação contida
-- Nitidez leve e vinheta curta, sem bloom estourado
-- Céu, nascer e pôr do sol
-- Noite um pouco mais escura, com luz urbana e farol ainda legíveis
-- Reflexos e poças na chuva
-- Gotas na tela durante a chuva, fora do centro da visão
-- Sangue breve na borda da tela quando o jogador toma dano
-
-O teste dentro do FiveM fica para depois, no cliente. Este repositório não inicia servidor e não pede chave.
+O que o pacote realmente faz é pós-processamento da imagem já desenhada pelo jogo: cor, contraste, bloom só em pixels claros, nitidez, vinheta e gotas na tela. Céu, poças, faróis e sombras do mundo continuam os do servidor. O detalhe está em `docs/ARQUITETURA.md`.
 
 ## Instalação rápida
 
-1. Copie esta pasta para `resources/fivem-graphics-mod`.
-2. No `server.cfg`, acima de recursos que também mexam em visual:
+1. Instale o [ReShade oficial](https://reshade.me/) **sem add-ons** e mova `dxgi.dll` e `ReShade.ini` para a pasta `plugins` do FiveM.
+2. Copie o conteúdo de **uma** edição (`dist/quality` ou `dist/performance`) por cima dessa pasta, seguindo `manifest.json`.
+3. No jogo, abra o ReShade (tecla Home) e carregue `FGM-Quality.ini` ou `FGM-Performance.ini`.
 
-```
-ensure fivem-graphics-mod
-setr fgm_profile quality
-```
+O passo a passo, o backup e a remoção estão em `docs/`.
 
-3. Reinicie o resource. No jogo: `/grafico quality` ou `/grafico performance`.
+## Efeito de sangue
 
-Detalhes, remoção e backup: [docs/INSTALACAO.md](docs/INSTALACAO.md), [docs/DESINSTALACAO.md](docs/DESINSTALACAO.md), [docs/BACKUP.md](docs/BACKUP.md). Como cada arquivo funciona: [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
-
-ReShade é opcional e fica em `optional/reshade/`. O visual principal não depende dele.
+Não faz parte do pacote. Um shader local não enxerga a vida do personagem, e um leitor de memória deixaria de ser um mod gráfico. A limitação está em `docs/COMPATIBILIDADE.md`.
