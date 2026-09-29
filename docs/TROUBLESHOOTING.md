@@ -32,6 +32,14 @@ Pure Mode e anticheat podem bloquear a DLL. O FGM não contorna isso. Entre em o
 
 Isso é o padrão. Abra o ReShade com Home e marque `FGM_Rain`. Força das gotas controla a intensidade. Desmarque de novo quando a chuva acabar.
 
+## O poste continua amarelo
+
+`FGM_Lamps` só alcança um núcleo pequeno. Se a lâmpada ocupa mais que o anel de 18 pixels, ela permanece âmbar. Confira se a técnica está marcada e se Branco dos postes está em 0,88. Zero desliga a correção.
+
+## Uma janela ou um letreiro ficou branco
+
+A aproximação pode pegar uma mancha quente e pequena. Baixe Branco dos postes ou desmarque `FGM_Lamps`. Neon, semáforo e farol quase branco não entram nessa conta quando a cor está fora da faixa âmbar.
+
 ## As duas edições parecem misturadas
 
 Feche o FiveM e rode de novo `Instalar-Quality.cmd` ou `Instalar-Performance.cmd`. A troca apaga bloom e LUT da edição que saiu.

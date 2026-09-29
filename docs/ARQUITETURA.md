@@ -8,19 +8,27 @@ Não há script de servidor, NUI nem resource. Os shaders leem só a imagem fina
 
 ## Ordem
 
-Quality, ativas: `FGM_Lut`, `FGM_Bloom`, `FGM_Sharp`, `FGM_Vignette`.
+Quality, ativas: `FGM_Lut`, `FGM_Lamps`, `FGM_Bloom`, `FGM_Sharp`, `FGM_Vignette`.
 
-Performance, ativas: a mesma lista sem `FGM_Bloom`, com nitidez e vinheta mais baixas.
+Performance, ativas: `FGM_Lut`, `FGM_Lamps`, `FGM_Sharp`, `FGM_Vignette`. A nitidez e a vinheta ficam mais baixas, e não há bloom.
 
 `FGM_Rain` está nas duas edições, mas fora de `Techniques=`. O preset só a lista em `TechniqueSorting=`, desmarcada. Enquanto estiver desmarcada, o passo não roda: menu, clima limpo e noite seca ficam sem gotas.
 
-A LUT vem primeiro. O bloom só soma luz acima do limiar 0,80. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último e desloca a amostra da imagem na gota.
+A LUT vem primeiro. `FGM_Lamps` vem logo depois e só troca o tom de um núcleo âmbar pequeno. O bloom da Quality soma luz acima do limiar 0,80 em cima dessa imagem, sem ganhar luminância extra do poste. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último e desloca a amostra da imagem na gota.
 
 ## LUT
 
 `grade()` em `tools/build_dist.py` gera uma faixa 32³, 1024×32. Quality usa contraste 1,09 a partir dos meios-tons, sombra cerca de 6,5% mais escura, tinta fria na sombra e quente na luz, saturação 0,91, um empurrão curto no azul de céu e no laranja de pôr do sol. Verde dominante recebe menos tinta, para vegetação e tons próximos de pele não virarem azul. Performance usa contraste 1,045, sombra 3% e saturação 0,95.
 
 A LUT não sabe a hora do jogo. Pixel escuro escurece um pouco. Pixel que já é céu ou pôr do sol muda de cor dentro do quadro que o servidor desenhou.
+
+## Postes
+
+`FGM_Lamps.fx` empurra o núcleo da lâmpada para um branco da mesma luminância. O slider `Branco dos postes` vale 0,88 nas duas edições, então o tom final é o mesmo. Zero desliga o efeito. Performance lê 4 amostras ao redor do pixel; Quality lê 8. O anel tem 18 pixels.
+
+O shader não recebe o tipo da luz. A aproximação exige, ao mesmo tempo, brilho alto, proporção verde/vermelho de lâmpada de sódio, saturação média e vizinhança mais escura. Farol quase branco, neon, semáforo, emergência, janela grande e pôr do sol ficam de fora. A noite em volta não esfria, porque pixel escuro não entra.
+
+Um poste muito perto, maior que o anel, continua âmbar: as amostras ainda caem na própria lâmpada. Uma janela quente minúscula pode ser tratada como poste. O manifesto marca `effects.street_lamps` como `local-approximation`.
 
 ## Chuva e sangue
 

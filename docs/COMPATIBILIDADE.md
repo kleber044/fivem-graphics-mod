@@ -9,6 +9,7 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 | Efeito | Quality | Performance |
 | --- | --- | --- |
 | LUT cinematográfica | contraste e split de céu/pôr do sol mais presentes | a mesma direção, mais curta |
+| Postes | núcleo âmbar pequeno vai para branco neutro, 8 amostras | o mesmo branco, 4 amostras |
 | Bloom | só em pixels já muito claros | ausente |
 | Nitidez | máscara curta | mais baixa |
 | Vinheta | leve, centro aberto | mais leve |
@@ -16,7 +17,22 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 
 A noite fica um pouco mais escura, com o preto ainda separado do zero para o detalhe não sumir. Cores muito saturadas descem. Verde de vegetação recebe menos tinta azul.
 
-Céu, sol, poça, cone de farol e sombra do mundo continuam os que o servidor desenhou. O pacote só trata o quadro pronto. Farol e poste que já estão claros ganham halo na Quality. Reflexo de rua molhada e brilho de poça são shaders do jogo; um pós-processo não troca esses materiais.
+Céu, sol, poça, cone de farol e sombra do mundo continuam os que o servidor desenhou. O pacote só trata o quadro pronto. Na Quality, o que já está muito claro ganha halo. O núcleo do poste é neutralizado antes desse halo, e a luminância dele não sobe. Reflexo de rua molhada e brilho de poça são shaders do jogo; um pós-processo não troca esses materiais.
+
+## Postes
+
+O objetivo é tirar o amarelo forte da iluminação pública e deixar um branco moderno, ainda levemente quente. O resultado não é azul: o pixel anda em direção ao cinza da própria luminância, no máximo até ela.
+
+Isso não distingue um poste de outra luz pelo nome. O ReShade só vê cor e vizinhança. Entra na correção um ponto brilhante, âmbar e isolado na noite. Ficam como estão:
+
+- farol já branco ou pouco quente;
+- neon, semáforo e luz de emergência;
+- janela e interior que ocupam uma área maior que o anel de 18 pixels;
+- céu, asfalto, sombra e pôr do sol.
+
+O controle fica no overlay, em `FGM_Lamps`, no slider Branco dos postes. As duas edições abrem em 0,88. A técnica também pode ser desmarcada. Performance faz a mesma mistura de cor com menos amostras, então um caso diagonal raro pode divergir; o núcleo isolado fica igual.
+
+Poste colado na câmera, maior que o anel, não muda. Janela quente muito pequena pode clarear o tom. Essas duas bordas estão documentadas de propósito: não há leitura de objeto, memória nem resource.
 
 ## Chuva
 
