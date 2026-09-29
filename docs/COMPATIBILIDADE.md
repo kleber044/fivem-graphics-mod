@@ -9,30 +9,31 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 | Efeito | Quality | Performance |
 | --- | --- | --- |
 | LUT cinematográfica | contraste e split de céu/pôr do sol mais presentes | a mesma direção, mais curta |
-| Postes | núcleo âmbar pequeno vai para branco neutro, 8 amostras | o mesmo branco, 4 amostras |
+| Postes | White LED no núcleo, 8 amostras | Neutral no núcleo, 4 amostras |
+| Horizonte | nível forte no véu branco | nível médio |
+| Vivacidade | meios-tons e verde controlados | a mesma direção, mais curta |
 | Bloom | só em pixels já muito claros | ausente |
 | Nitidez | máscara curta | mais baixa |
 | Vinheta | leve, centro aberto | mais leve |
 | Gotas na lente | desligadas; ao marcar, duas camadas e distorção | desligadas; ao marcar, uma camada e distorção menor |
 
-A noite fica um pouco mais escura, com o preto ainda separado do zero para o detalhe não sumir. Cores muito saturadas descem. Verde de vegetação recebe menos tinta azul.
+A noite fica um pouco mais escura, com o preto ainda separado do zero para o detalhe não sumir. Cor que já está forte quase não sobe. Verde de vegetação recebe menos tinta azul da sombra.
 
-Céu, sol, poça, cone de farol e sombra do mundo continuam os que o servidor desenhou. O pacote só trata o quadro pronto. Na Quality, o que já está muito claro ganha halo. O núcleo do poste é neutralizado antes desse halo, e a luminância dele não sobe. Reflexo de rua molhada e brilho de poça são shaders do jogo; um pós-processo não troca esses materiais.
+Céu, sol, poça, cone de farol e sombra do mundo continuam os que o servidor desenhou. O pacote só trata o quadro pronto. Na Quality, o que já está muito claro ganha halo. O núcleo do poste é neutralizado depois desse halo, e a luminância dele não sobe. Reflexo de rua molhada e brilho de poça são shaders do jogo; um pós-processo não troca esses materiais.
 
 ## Postes
 
-O objetivo é tirar o amarelo forte da iluminação pública e deixar um branco moderno, ainda levemente quente. O resultado não é azul: o pixel anda em direção ao cinza da própria luminância, no máximo até ela.
+O núcleo quente e pequeno vai para branco de LED na Quality e para um branco ainda levemente quente na Performance. O halo externo, mais fraco, permanece âmbar. A luminância do núcleo não sobe, então o bloom não ganha energia. Como o ajuste roda depois do bloom, o amarelo do halo não é pintado de volta no centro.
 
-Isso não distingue um poste de outra luz pelo nome. O ReShade só vê cor e vizinhança. Entra na correção um ponto brilhante, âmbar e isolado na noite. Ficam como estão:
+O ReShade só vê cor e vizinhança. Entram pixels bem claros, na faixa do âmbar de poste, com média ao redor mais escura. Ficam como estão farol quase branco, neon, semáforo, emergência, janela grande, céu, asfalto e pôr do sol.
 
-- farol já branco ou pouco quente;
-- neon, semáforo e luz de emergência;
-- janela e interior que ocupam uma área maior que o anel de 18 pixels;
-- céu, asfalto, sombra e pôr do sol.
+No overlay, `FGM_Lamps` tem o slider Postes: 1 Soft, 2 Neutral, 3 White LED. Desmarcar a técnica desliga. Performance usa menos amostras. Poste maior que o anel de 32 pixels não muda. Janela quente minúscula pode clarear.
 
-O controle fica no overlay, em `FGM_Lamps`, no slider Branco dos postes. As duas edições abrem em 0,88. A técnica também pode ser desmarcada. Performance faz a mesma mistura de cor com menos amostras, então um caso diagonal raro pode divergir; o núcleo isolado fica igual.
+## Horizonte e cor
 
-Poste colado na câmera, maior que o anel, não muda. Janela quente muito pequena pode clarear o tom. Essas duas bordas estão documentadas de propósito: não há leitura de objeto, memória nem resource.
+`FGM_ClearView` baixa o véu branco-acinzentado do meio da escala. Prédio distante e rua lavada ganham separação do céu. Sombra e luz de farol não entram nessa conta. Nível 0 desliga. A névoa de um clima que realmente está fechado continua presente, só menos leitosa.
+
+A vivacidade não é um saturado global. Cor apagada de vegetação, céu e cidade sobe um pouco. Pele, branco neutro, sombra e cor que já está forte quase não mexem. O slider Vivacidade calibra isso. Quality é o preset mais presente. Performance repete o mesmo caminho com números menores.
 
 ## Chuva
 

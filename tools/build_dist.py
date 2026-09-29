@@ -22,13 +22,16 @@ EDITIONS = {
         "lut": "fgm_quality_lut.png",
         "techniques": [
             "FGM_Lut@FGM_Lut.fx",
-            "FGM_Lamps@FGM_Lamps.fx",
+            "FGM_ClearView@FGM_ClearView.fx",
             "FGM_Bloom@FGM_Bloom.fx",
+            "FGM_Lamps@FGM_Lamps.fx",
             "FGM_Sharp@FGM_Sharp.fx",
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
-            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=8", "LampWhite": "0.880"},
+            "FGM_Lut.fx": {"ColorVibrance": "0.360", "PlantExtra": "0.280"},
+            "FGM_ClearView.fx": {"ClearLevel": "3"},
+            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=8", "LampLevel": "3"},
             "FGM_Bloom.fx": {"BloomThreshold": "0.800", "BloomAmount": "0.180"},
             "FGM_Sharp.fx": {"SharpStrength": "0.340"},
             "FGM_Vignette.fx": {"VignetteAmount": "0.160"},
@@ -37,6 +40,7 @@ EDITIONS = {
         "shaders": [
             "FGM.fxh",
             "FGM_Lut.fx",
+            "FGM_ClearView.fx",
             "FGM_Lamps.fx",
             "FGM_Bloom.fx",
             "FGM_Sharp.fx",
@@ -49,12 +53,15 @@ EDITIONS = {
         "lut": "fgm_performance_lut.png",
         "techniques": [
             "FGM_Lut@FGM_Lut.fx",
+            "FGM_ClearView@FGM_ClearView.fx",
             "FGM_Lamps@FGM_Lamps.fx",
             "FGM_Sharp@FGM_Sharp.fx",
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
-            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=4", "LampWhite": "0.880"},
+            "FGM_Lut.fx": {"ColorVibrance": "0.220", "PlantExtra": "0.140"},
+            "FGM_ClearView.fx": {"ClearLevel": "2"},
+            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=4", "LampLevel": "2"},
             "FGM_Sharp.fx": {"SharpStrength": "0.140"},
             "FGM_Vignette.fx": {"VignetteAmount": "0.060"},
             "FGM_Rain.fx": {"RainStrength": "0.300", "RainLayers": "1", "RainDistort": "0.350"},
@@ -62,6 +69,7 @@ EDITIONS = {
         "shaders": [
             "FGM.fxh",
             "FGM_Lut.fx",
+            "FGM_ClearView.fx",
             "FGM_Lamps.fx",
             "FGM_Sharp.fx",
             "FGM_Vignette.fx",
@@ -83,21 +91,19 @@ def grade(rgb: tuple[float, float, float], edition: str) -> tuple[float, float, 
     # Curva em sRGB. O contraste afrouxa no preto para a sombra não virar buraco.
     quality = edition == "quality"
     if quality:
-        contrast = 1.09
-        shadow_scale = 0.065
-        shadow_tint = (-0.018, -0.002, 0.016)
-        highlight_tint = (0.026, 0.008, -0.014)
-        saturation = 0.91
-        sky_push = 0.020
-        sun_push = 0.022
+        contrast = 1.11
+        shadow_scale = 0.060
+        shadow_tint = (-0.016, -0.002, 0.012)
+        highlight_tint = (0.018, 0.006, -0.008)
+        sky_push = 0.028
+        sun_push = 0.032
     else:
-        contrast = 1.045
-        shadow_scale = 0.030
-        shadow_tint = (-0.009, -0.001, 0.008)
-        highlight_tint = (0.012, 0.004, -0.006)
-        saturation = 0.95
-        sky_push = 0.010
-        sun_push = 0.010
+        contrast = 1.055
+        shadow_scale = 0.028
+        shadow_tint = (-0.008, -0.001, 0.006)
+        highlight_tint = (0.010, 0.003, -0.004)
+        sky_push = 0.014
+        sun_push = 0.016
     x = list(rgb)
     lum = 0.2126 * x[0] + 0.7152 * x[1] + 0.0722 * x[2]
     shadow = smoothstep(0.50, 0.05, lum)
@@ -122,9 +128,55 @@ def grade(rgb: tuple[float, float, float], edition: str) -> tuple[float, float, 
     x[0] += sun_push * sunset - sky_push * 0.35 * sky
     x[1] += sun_push * 0.25 * sunset
     x[2] += sky_push * sky - sun_push * 0.45 * sunset
-    luma = 0.2126 * x[0] + 0.7152 * x[1] + 0.0722 * x[2]
-    x = [luma + (channel - luma) * saturation for channel in x]
     return tuple(min(1.0, max(0.0, channel)) for channel in x)
+
+
+def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float) -> tuple[float, float, float]:
+    # A mesma conta de FGM_Vibrant em FGM_Lut.fx.
+    red, green, blue = rgb
+    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    peak = max(red, green, blue)
+    floorc = min(red, green, blue)
+    sat = (peak - floorc) / max(peak, 0.001)
+    shadow = smoothstep(0.08, 0.22, tone)
+    not_white = 1.0 - smoothstep(0.78, 0.94, tone)
+    headroom = 1.0 - smoothstep(0.42, 0.70, sat)
+    rg = red - green
+    gb = green - blue
+    skin = smoothstep(0.04, 0.12, rg) * (1.0 - smoothstep(0.18, 0.32, rg))
+    skin *= smoothstep(0.03, 0.10, gb)
+    skin *= smoothstep(0.20, 0.40, tone) * (1.0 - smoothstep(0.62, 0.82, tone))
+    skin *= smoothstep(0.10, 0.22, sat) * (1.0 - smoothstep(0.45, 0.65, sat))
+    protect = 1.0 - 0.80 * min(1.0, max(0.0, skin))
+    plant = smoothstep(0.03, 0.14, green - max(red, blue))
+    plant *= 1.0 - smoothstep(0.55, 0.80, sat)
+    gain = amount * shadow * not_white * headroom * protect * (1.0 + plant_extra * plant)
+    out = [tone + (channel - tone) * (1.0 + gain) for channel in rgb]
+    out_peak = max(out)
+    if out_peak > 1.0:
+        head = max(out_peak - tone, 0.001)
+        room = max(1.0 - tone, 0.0)
+        out = [tone + (channel - tone) * (room / head) for channel in out]
+    return tuple(min(1.0, max(0.0, channel)) for channel in out)
+
+
+def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, float, float]:
+    # A mesma conta de FGM_ClearView.fx. Sem amostra extra.
+    strength = (0.0, 0.12, 0.22, 0.34)[max(0, min(3, int(level)))]
+    if strength <= 0.0:
+        return rgb
+    red, green, blue = rgb
+    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    peak = max(red, green, blue)
+    floorc = min(red, green, blue)
+    sat = (peak - floorc) / max(peak, 0.001)
+    gray = 1.0 - smoothstep(0.06, 0.22, sat)
+    band = smoothstep(0.40, 0.55, tone) * (1.0 - smoothstep(0.76, 0.88, tone))
+    veil = gray * band * strength
+    if veil <= 0.001:
+        return rgb
+    scale = 1.0 / max(1.0 - veil, 0.001)
+    return tuple(min(1.0, max(0.0, (channel - veil) * scale)) for channel in rgb)
 
 
 def write_png(path: Path, width: int, height: int, rgb: bytes) -> None:
@@ -217,6 +269,8 @@ def manifest(edition: str, spec: dict, folder: Path, files: list[tuple[str, str]
         "effects": {
             "screen_rain": "manual-toggle",
             "street_lamps": "local-approximation",
+            "clear_view": "local-approximation",
+            "vibrance": "selective",
             "damage_blood": "unavailable",
         },
         "install_policy": {
@@ -369,7 +423,9 @@ def assemble_release() -> None:
                 "7. FGM_Rain começa desligado. Não há gotas no menu nem em clima limpo.",
                 "8. Quando chover no jogo, abra o ReShade com Home e marque FGM_Rain.",
                 "9. Força das gotas sobe a intensidade. Desmarque a técnica quando a chuva acabar.",
-                "10. Branco dos postes já vem em 0,88 nas duas edições. Zero desliga a correção.",
+                "10. Quality abre em White LED, horizonte forte e vivacidade 0,36.",
+                "11. Performance abre em Neutral, horizonte médio e vivacidade 0,22.",
+                "12. FGM_Rain continua desmarcado até você ligar na chuva.",
                 "",
                 "O ReShade 6.8.0 é baixado de https://reshade.me/ durante a instalação.",
                 "O binário não vem neste pacote.",

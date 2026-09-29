@@ -8,27 +8,33 @@ Não há script de servidor, NUI nem resource. Os shaders leem só a imagem fina
 
 ## Ordem
 
-Quality, ativas: `FGM_Lut`, `FGM_Lamps`, `FGM_Bloom`, `FGM_Sharp`, `FGM_Vignette`.
+Quality, ativas: `FGM_Lut`, `FGM_ClearView`, `FGM_Bloom`, `FGM_Lamps`, `FGM_Sharp`, `FGM_Vignette`.
 
-Performance, ativas: `FGM_Lut`, `FGM_Lamps`, `FGM_Sharp`, `FGM_Vignette`. A nitidez e a vinheta ficam mais baixas, e não há bloom.
+Performance, ativas: `FGM_Lut`, `FGM_ClearView`, `FGM_Lamps`, `FGM_Sharp`, `FGM_Vignette`. A vivacidade, o horizonte e a nitidez ficam mais baixos, e não há bloom.
 
 `FGM_Rain` está nas duas edições, mas fora de `Techniques=`. O preset só a lista em `TechniqueSorting=`, desmarcada. Enquanto estiver desmarcada, o passo não roda: menu, clima limpo e noite seca ficam sem gotas.
 
-A LUT vem primeiro. `FGM_Lamps` vem logo depois e só troca o tom de um núcleo âmbar pequeno. O bloom da Quality soma luz acima do limiar 0,80 em cima dessa imagem, sem ganhar luminância extra do poste. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último e desloca a amostra da imagem na gota.
+A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o véu branco antes do bloom, para o halo não espalhar essa névoa. O bloom da Quality continua só acima do limiar 0,80. `FGM_Lamps` entra depois do bloom: o núcleo do poste é neutralizado por último, senão o bloom devolve o amarelo para cima dele. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último.
 
 ## LUT
 
-`grade()` em `tools/build_dist.py` gera uma faixa 32³, 1024×32. Quality usa contraste 1,09 a partir dos meios-tons, sombra cerca de 6,5% mais escura, tinta fria na sombra e quente na luz, saturação 0,91, um empurrão curto no azul de céu e no laranja de pôr do sol. Verde dominante recebe menos tinta, para vegetação e tons próximos de pele não virarem azul. Performance usa contraste 1,045, sombra 3% e saturação 0,95.
+`grade()` em `tools/build_dist.py` gera uma faixa 32³, 1024×32. Quality usa contraste 1,11 a partir dos meios-tons, sombra cerca de 6% mais escura, tinta fria na sombra e um empurrão curto no azul de céu e no laranja de pôr do sol. Verde dominante recebe menos dessa tinta. Performance usa contraste 1,055 e sombra 2,8%. A LUT não reduz mais a saturação global.
+
+A vivacidade fica no shader `FGM_Lut.fx`, no slider Vivacidade. Quality abre em 0,36 e Performance em 0,22. O ganho prefere meios-tons pouco saturados. Sombra, branco neutro, cor que já está forte e tom de pele recebem pouco. Verde da vegetação tem um acréscimo próprio, 0,28 na Quality e 0,14 na Performance, e para quando o verde já é alto.
 
 A LUT não sabe a hora do jogo. Pixel escuro escurece um pouco. Pixel que já é céu ou pôr do sol muda de cor dentro do quadro que o servidor desenhou.
 
 ## Postes
 
-`FGM_Lamps.fx` empurra o núcleo da lâmpada para um branco da mesma luminância. O slider `Branco dos postes` vale 0,88 nas duas edições, então o tom final é o mesmo. Zero desliga o efeito. Performance lê 4 amostras ao redor do pixel; Quality lê 8. O anel tem 18 pixels.
+`FGM_Lamps.fx` tem três níveis no slider Postes: 1 Soft (0,62), 2 Neutral (0,82) e 3 White LED (1,00). Quality abre em White LED. Performance abre em Neutral. No White LED o núcleo vai até o branco da própria luminância, sem ganhar brilho e sem passar para o azul. O halo mais fraco não entra nessa conta e continua quente.
 
-O shader não recebe o tipo da luz. A aproximação exige, ao mesmo tempo, brilho alto, proporção verde/vermelho de lâmpada de sódio, saturação média e vizinhança mais escura. Farol quase branco, neon, semáforo, emergência, janela grande e pôr do sol ficam de fora. A noite em volta não esfria, porque pixel escuro não entra.
+O anel tem 32 pixels. Quality lê 8 amostras e tira a média; Performance lê 4. A média, em vez do ponto mais claro, deixa o núcleo passar mesmo quando o brilho em volta ainda é o halo. A faixa de cor é mais larga que a anterior, para pegar o âmbar do jogo, e continua cortando saturação alta de neon e semáforo.
 
-Um poste muito perto, maior que o anel, continua âmbar: as amostras ainda caem na própria lâmpada. Uma janela quente minúscula pode ser tratada como poste. O manifesto marca `effects.street_lamps` como `local-approximation`.
+O shader não recebe o tipo da luz. Farol quase branco, neon, semáforo, emergência, janela grande e pôr do sol ficam de fora. Um poste maior que o anel continua âmbar. Uma janela quente minúscula pode ser tratada como poste. O manifesto marca `effects.street_lamps` como `local-approximation`.
+
+## Horizonte
+
+`FGM_ClearView.fx` estima névoa branca por cor: luminância média-alta e saturação baixa. Não usa profundidade. O slider Horizonte vai de 0 a 3. Quality abre em 3 (força 0,34). Performance abre em 2 (força 0,22). Sombra, luz estourada e cor já saturada não entram, então a cena inteira não escurece e a neblina real só perde o leite. Não há kernel, para não desenhar halo. O manifesto marca `effects.clear_view` como `local-approximation`.
 
 ## Chuva e sangue
 
