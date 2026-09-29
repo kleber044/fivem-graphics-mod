@@ -1,0 +1,7 @@
+FGM — mod gráfico local
+Shaders, LUTs, presets, manifesto e o instalador deste repositório foram criados para este produto.
+
+Não há shader, textura, preset ou arquivo de jogo de terceiros neste pacote.
+O detentor do projeto pode vender e redistribuir esses arquivos.
+
+ReShade é uma dependência separada. Veja ReShade-BSD-3-Clause.txt.

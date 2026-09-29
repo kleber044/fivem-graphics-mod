@@ -1,0 +1,11 @@
+FGM 1.0.0 — teste no Windows
+
+1. Feche o FiveM.
+2. Dê dois cliques em Instalar-Quality.cmd ou Instalar-Performance.cmd.
+3. Abra o FiveM e entre num servidor que permita ReShade.
+4. O preset da edição escolhida já fica selecionado.
+5. Para trocar, feche o jogo e execute a outra instalação.
+6. Desinstalar.cmd restaura o backup e remove só o que o FGM criou.
+
+O ReShade 6.8.0 é baixado de https://reshade.me/ durante a instalação.
+O binário não vem neste pacote.

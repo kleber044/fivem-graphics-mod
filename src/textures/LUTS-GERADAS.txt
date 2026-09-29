@@ -1,0 +1,1 @@
+As LUTs PNG não ficam aqui. tools/build_dist.py gera fgm_quality_lut.png e fgm_performance_lut.png a partir da função grade().
