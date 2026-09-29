@@ -15,10 +15,10 @@ float FGM_ClearStrength(int level)
     if (level <= 0)
         return 0.0;
     if (level == 1)
-        return 0.12;
+        return 0.07;
     if (level == 2)
-        return 0.22;
-    return 0.34;
+        return 0.13;
+    return 0.20;
 }
 
 float4 FGM_ClearPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target

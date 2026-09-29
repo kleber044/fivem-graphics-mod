@@ -18,7 +18,7 @@ Se já existir um ReShade 5 ou mais novo em `dxgi.dll` ou `d3d11.dll`, ele é re
 
 O preset da edição fica selecionado em `ReShade.ini`. Chaves que já existiam nesse arquivo são mantidas. A cópia anterior vai para `FiveM.app\FGM-Backup\<data-hora>\`.
 
-Quality abre com Postes em White LED, Horizonte em 3 e Vivacidade em 0,36. Performance abre com Neutral, Horizonte em 2 e Vivacidade em 0,22. No overlay dá para baixar esses sliders. `FGM_Rain` não entra ligado. No jogo, Home abre o ReShade: marque essa técnica só enquanto a chuva do GTA estiver na tela e desmarque quando ela acabar. O detalhe está em `docs/COMPATIBILIDADE.md`.
+Quality abre com Postes em White LED, Horizonte em 3 e Vivacidade em 0,14. Performance abre com Neutral, Horizonte em 2 e Vivacidade em 0,08. No overlay dá para baixar esses sliders. `FGM_Rain` não entra ligado. No jogo, Home abre o ReShade: marque essa técnica só enquanto a chuva do GTA estiver na tela e desmarque quando ela acabar. O detalhe está em `docs/COMPATIBILIDADE.md`.
 
 ## O que não fazer
 

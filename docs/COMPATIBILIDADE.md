@@ -10,9 +10,9 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 | --- | --- | --- |
 | LUT cinematográfica | contraste e split de céu/pôr do sol mais presentes | a mesma direção, mais curta |
 | Postes | White LED no núcleo, 8 amostras | Neutral no núcleo, 4 amostras |
-| Horizonte | nível forte no véu branco | nível médio |
-| Vivacidade | meios-tons e verde controlados | a mesma direção, mais curta |
-| Bloom | só em pixels já muito claros | ausente |
+| Horizonte | nível 3, força curta | nível 2, ainda mais curto |
+| Vivacidade | 0,14, com freio em verde, céu e laranja | 0,08, sem extra de verde |
+| Bloom | só acima de 0,88, quantidade 0,10 | ausente |
 | Nitidez | máscara curta | mais baixa |
 | Vinheta | leve, centro aberto | mais leve |
 | Gotas na lente | desligadas; ao marcar, duas camadas e distorção | desligadas; ao marcar, uma camada e distorção menor |
@@ -31,9 +31,9 @@ No overlay, `FGM_Lamps` tem o slider Postes: 1 Soft, 2 Neutral, 3 White LED. Des
 
 ## Horizonte e cor
 
-`FGM_ClearView` baixa o véu branco-acinzentado do meio da escala. Prédio distante e rua lavada ganham separação do céu. Sombra e luz de farol não entram nessa conta. Nível 0 desliga. A névoa de um clima que realmente está fechado continua presente, só menos leitosa.
+`FGM_ClearView` baixa um pouco o véu branco-acinzentado do meio da escala. O horizonte fica mais legível e a névoa de clima fechado continua presente. Nível 0 desliga.
 
-A vivacidade não é um saturado global. Cor apagada de vegetação, céu e cidade sobe um pouco. Pele, branco neutro, sombra e cor que já está forte quase não mexem. O slider Vivacidade calibra isso. Quality é o preset mais presente. Performance repete o mesmo caminho com números menores.
+A vivacidade não é um saturado global. Meios-tons apagados sobem pouco. Verde, azul de céu e laranja já forte sobem menos ainda. Pele, branco neutro, sombra, carro e placa que já têm cor quase ficam como o jogo desenhou. O slider Vivacidade calibra isso. Quality é o preset principal, num ponto moderado. Performance repete o caminho com número menor. A joelha da LUT segura camisa, nuvem e calçada clara sem pintá-las de cinza.
 
 ## Chuva
 

@@ -40,6 +40,10 @@ Quality deve estar no nível 3, White LED. Se a lâmpada ocupa mais que o anel d
 
 A aproximação pode pegar uma mancha quente e pequena. Baixe o slider Postes para Neutral ou Soft, ou desmarque `FGM_Lamps`. Neon, semáforo e farol quase branco ficam de fora quando a cor não é a do poste.
 
+## As cores ficaram fortes demais
+
+Baixe Vivacidade no overlay. Quality abre em 0,14 e Performance em 0,08. Verde, céu e laranja já nascem com freio. Zero deixa só a LUT.
+
 ## O fundo continua branco, ou ficou escuro demais
 
 O slider Horizonte da `FGM_ClearView` vai de 0 a 3. Quality abre em 3 e Performance em 2. Zero devolve o véu original. O efeito não enxerga distância: um cinza lavado no meio da escala é tratado como névoa, e uma parede branca muito clara pode mudar pouco.

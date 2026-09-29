@@ -6,7 +6,7 @@ No Windows, feche o FiveM e dê dois cliques em `Instalar-Quality.cmd` ou `Insta
 
 Não há resource de servidor. Quality e Performance não ficam ativas ao mesmo tempo.
 
-Quality é o visual principal: núcleo de poste em White LED, horizonte mais limpo e cor mais viva nos meios-tons. Performance segue o mesmo caminho com Neutral, menos névoa removida e menos vivacidade. Farol branco, neon e semáforo não viram branco, e a chuva na lente continua desligada.
+Quality é o visual principal: núcleo de poste em White LED, horizonte um pouco mais limpo e cor moderada. Performance segue o mesmo caminho com Neutral, menos névoa removida e menos vivacidade. Brancos claros continuam brancos, sem estourar. Farol branco, neon e semáforo não viram branco, e a chuva na lente continua desligada.
 
 `FGM_Rain` começa desligado. O ReShade local não detecta o clima do servidor nem o menu do FiveM, então não há gotas até o jogador marcar a técnica quando a chuva do jogo está na tela. Desmarcar some com elas. Sangue ao tomar dano não faz parte do pacote: um shader não vê a vida do personagem, e leitura de memória não entra neste produto.
 

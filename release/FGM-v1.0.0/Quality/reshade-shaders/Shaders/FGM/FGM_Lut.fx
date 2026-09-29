@@ -7,7 +7,7 @@ uniform float ColorVibrance <
     ui_max = 0.60;
     ui_step = 0.01;
     ui_label = "Vivacidade";
-> = 0.36;
+> = 0.14;
 
 uniform float PlantExtra <
     ui_type = "slider";
@@ -15,7 +15,7 @@ uniform float PlantExtra <
     ui_max = 0.60;
     ui_step = 0.01;
     ui_label = "Verde da vegetação";
-> = 0.28;
+> = 0.04;
 
 float3 FGM_Vibrant(float3 color)
 {
@@ -24,8 +24,8 @@ float3 FGM_Vibrant(float3 color)
     float floorc = min(color.r, min(color.g, color.b));
     float sat = (peak - floorc) / max(peak, 0.001);
     float shadow = smoothstep(0.08, 0.22, luma);
-    float notWhite = 1.0 - smoothstep(0.78, 0.94, luma);
-    float headroom = 1.0 - smoothstep(0.42, 0.70, sat);
+    float notWhite = 1.0 - smoothstep(0.72, 0.90, luma);
+    float headroom = 1.0 - smoothstep(0.28, 0.50, sat);
     float rg = color.r - color.g;
     float gb = color.g - color.b;
     float skin = smoothstep(0.04, 0.12, rg) * (1.0 - smoothstep(0.18, 0.32, rg));
@@ -35,7 +35,14 @@ float3 FGM_Vibrant(float3 color)
     float protect = 1.0 - 0.80 * saturate(skin);
     float green = smoothstep(0.03, 0.14, color.g - max(color.r, color.b));
     green *= 1.0 - smoothstep(0.55, 0.80, sat);
-    float gain = ColorVibrance * shadow * notWhite * headroom * protect * (1.0 + PlantExtra * green);
+    float hueBias = 1.0;
+    float greenDom = saturate((color.g - max(color.r, color.b)) / 0.12);
+    hueBias *= lerp(1.0, 0.35, greenDom);
+    float blueDom = saturate((color.b - max(color.r, color.g)) / 0.10);
+    hueBias *= lerp(1.0, 0.45, blueDom);
+    float warmDom = saturate((color.r - max(color.g, color.b) - 0.05) / 0.14);
+    hueBias *= lerp(1.0, 0.60, warmDom);
+    float gain = ColorVibrance * shadow * notWhite * headroom * protect * hueBias * (1.0 + PlantExtra * green);
     float3 outColor = luma + (color - luma) * (1.0 + gain);
     float outPeak = max(outColor.r, max(outColor.g, outColor.b));
     if (outPeak > 1.0)

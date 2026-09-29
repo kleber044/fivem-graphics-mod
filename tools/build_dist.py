@@ -29,10 +29,10 @@ EDITIONS = {
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
-            "FGM_Lut.fx": {"ColorVibrance": "0.360", "PlantExtra": "0.280"},
+            "FGM_Lut.fx": {"ColorVibrance": "0.140", "PlantExtra": "0.040"},
             "FGM_ClearView.fx": {"ClearLevel": "3"},
             "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=8", "LampLevel": "3"},
-            "FGM_Bloom.fx": {"BloomThreshold": "0.800", "BloomAmount": "0.180"},
+            "FGM_Bloom.fx": {"BloomThreshold": "0.880", "BloomAmount": "0.100"},
             "FGM_Sharp.fx": {"SharpStrength": "0.340"},
             "FGM_Vignette.fx": {"VignetteAmount": "0.160"},
             "FGM_Rain.fx": {"RainStrength": "0.720", "RainLayers": "2", "RainDistort": "1.000"},
@@ -59,7 +59,7 @@ EDITIONS = {
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
-            "FGM_Lut.fx": {"ColorVibrance": "0.220", "PlantExtra": "0.140"},
+            "FGM_Lut.fx": {"ColorVibrance": "0.080", "PlantExtra": "0.000"},
             "FGM_ClearView.fx": {"ClearLevel": "2"},
             "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=4", "LampLevel": "2"},
             "FGM_Sharp.fx": {"SharpStrength": "0.140"},
@@ -91,19 +91,19 @@ def grade(rgb: tuple[float, float, float], edition: str) -> tuple[float, float, 
     # Curva em sRGB. O contraste afrouxa no preto para a sombra não virar buraco.
     quality = edition == "quality"
     if quality:
-        contrast = 1.11
-        shadow_scale = 0.060
-        shadow_tint = (-0.016, -0.002, 0.012)
-        highlight_tint = (0.018, 0.006, -0.008)
-        sky_push = 0.028
-        sun_push = 0.032
+        contrast = 1.06
+        shadow_scale = 0.040
+        shadow_tint = (-0.010, -0.001, 0.006)
+        highlight_tint = (0.004, 0.001, -0.001)
+        sky_push = 0.010
+        sun_push = 0.012
     else:
-        contrast = 1.055
-        shadow_scale = 0.028
-        shadow_tint = (-0.008, -0.001, 0.006)
-        highlight_tint = (0.010, 0.003, -0.004)
-        sky_push = 0.014
-        sun_push = 0.016
+        contrast = 1.035
+        shadow_scale = 0.020
+        shadow_tint = (-0.005, 0.000, 0.003)
+        highlight_tint = (0.002, 0.001, 0.000)
+        sky_push = 0.005
+        sun_push = 0.006
     x = list(rgb)
     lum = 0.2126 * x[0] + 0.7152 * x[1] + 0.0722 * x[2]
     shadow = smoothstep(0.50, 0.05, lum)
@@ -128,7 +128,20 @@ def grade(rgb: tuple[float, float, float], edition: str) -> tuple[float, float, 
     x[0] += sun_push * sunset - sky_push * 0.35 * sky
     x[1] += sun_push * 0.25 * sunset
     x[2] += sky_push * sky - sun_push * 0.45 * sunset
-    return tuple(min(1.0, max(0.0, channel)) for channel in x)
+    return tuple(shoulder(channel) for channel in x)
+
+
+def shoulder(channel: float) -> float:
+    # Joelha alta. Branco continua branco, mas 0,96 não vira 1,00.
+    knee = 0.78
+    if channel <= knee:
+        return min(1.0, max(0.0, channel))
+    span = 1.0 - knee
+    t = (channel - knee) / span
+    curved = t / (1.0 + 0.35 * t)
+    full = 1.0 / 1.35
+    rolled = knee + 0.16 * (curved / full)
+    return min(1.0, max(0.0, rolled))
 
 
 def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float) -> tuple[float, float, float]:
@@ -139,8 +152,8 @@ def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float)
     floorc = min(red, green, blue)
     sat = (peak - floorc) / max(peak, 0.001)
     shadow = smoothstep(0.08, 0.22, tone)
-    not_white = 1.0 - smoothstep(0.78, 0.94, tone)
-    headroom = 1.0 - smoothstep(0.42, 0.70, sat)
+    not_white = 1.0 - smoothstep(0.72, 0.90, tone)
+    headroom = 1.0 - smoothstep(0.28, 0.50, sat)
     rg = red - green
     gb = green - blue
     skin = smoothstep(0.04, 0.12, rg) * (1.0 - smoothstep(0.18, 0.32, rg))
@@ -150,7 +163,11 @@ def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float)
     protect = 1.0 - 0.80 * min(1.0, max(0.0, skin))
     plant = smoothstep(0.03, 0.14, green - max(red, blue))
     plant *= 1.0 - smoothstep(0.55, 0.80, sat)
-    gain = amount * shadow * not_white * headroom * protect * (1.0 + plant_extra * plant)
+    green_dom = min(1.0, max(0.0, (green - max(red, blue)) / 0.12))
+    blue_dom = min(1.0, max(0.0, (blue - max(red, green)) / 0.10))
+    warm_dom = min(1.0, max(0.0, (red - max(green, blue) - 0.05) / 0.14))
+    hue_bias = (1.0 - 0.65 * green_dom) * (1.0 - 0.55 * blue_dom) * (1.0 - 0.40 * warm_dom)
+    gain = amount * shadow * not_white * headroom * protect * hue_bias * (1.0 + plant_extra * plant)
     out = [tone + (channel - tone) * (1.0 + gain) for channel in rgb]
     out_peak = max(out)
     if out_peak > 1.0:
@@ -162,7 +179,7 @@ def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float)
 
 def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, float, float]:
     # A mesma conta de FGM_ClearView.fx. Sem amostra extra.
-    strength = (0.0, 0.12, 0.22, 0.34)[max(0, min(3, int(level)))]
+    strength = (0.0, 0.07, 0.13, 0.20)[max(0, min(3, int(level)))]
     if strength <= 0.0:
         return rgb
     red, green, blue = rgb
@@ -423,8 +440,8 @@ def assemble_release() -> None:
                 "7. FGM_Rain começa desligado. Não há gotas no menu nem em clima limpo.",
                 "8. Quando chover no jogo, abra o ReShade com Home e marque FGM_Rain.",
                 "9. Força das gotas sobe a intensidade. Desmarque a técnica quando a chuva acabar.",
-                "10. Quality abre em White LED, horizonte forte e vivacidade 0,36.",
-                "11. Performance abre em Neutral, horizonte médio e vivacidade 0,22.",
+                "10. Quality abre em White LED, horizonte 3 e vivacidade 0,14.",
+                "11. Performance abre em Neutral, horizonte 2 e vivacidade 0,08.",
                 "12. FGM_Rain continua desmarcado até você ligar na chuva.",
                 "",
                 "O ReShade 6.8.0 é baixado de https://reshade.me/ durante a instalação.",

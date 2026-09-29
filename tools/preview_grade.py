@@ -46,7 +46,11 @@ MARK = {
     "car": (340, 200),
     "sign": (150, 188),
     "haze": (200, 78),
-    "sky": (200, 24),
+    "haze_sky": (200, 24),
+    "sky": (40, 22),
+    "cloud": (110, 24),
+    "shirt": (430, 155),
+    "walk": (250, 230),
     "shadow": (20, 250),
 }
 
@@ -97,6 +101,14 @@ def scene(width: int, height: int, night: bool) -> bytearray:
                     color = [0.62, 0.14, 0.12]
                 if 130 <= x <= 175 and 165 <= y <= 210:
                     color = [0.78, 0.62, 0.12]
+                if 8 <= x <= 72 and 8 <= y <= 40:
+                    color = [0.40, 0.58, 0.80]
+                if 90 <= x <= 140 and 12 <= y <= 40:
+                    color = [0.95, 0.96, 0.97]
+                if 400 <= x <= 455 and 140 <= y <= 175:
+                    color = [0.96, 0.95, 0.94]
+                if 220 <= x <= 280 and 215 <= y <= 245:
+                    color = [0.88, 0.86, 0.82]
                 if 0.55 < v < 0.72 and 0.55 < u < 0.78:
                     warm = (0.95, 0.55, 0.25)
                     color = [color[i] * 0.35 + warm[i] * 0.65 for i in range(3)]
@@ -115,7 +127,7 @@ def lamp_chroma(color: tuple[float, float, float]) -> float:
     peak = max(red, green, blue)
     floorc = min(red, green, blue)
     sat = (peak - floorc) / max(peak, 0.001)
-    bright = smoothstep(0.60, 0.74, luma(color))
+    bright = smoothstep(0.58, 0.68, luma(color))
     ratio = green / max(red, 0.001)
     sodium = smoothstep(0.42, 0.56, ratio) * (1.0 - smoothstep(0.90, 0.98, ratio))
     blue_def = smoothstep(0.10, 0.22, min(red, green) - blue)
@@ -271,8 +283,8 @@ def main() -> None:
     night = scene(width, height, True)
     day = scene(width, height, False)
     look = {
-        "quality": {"rain": 0.72, "layers": 2, "taps": 8, "level": 3, "clear": 3, "vibrance": 0.36, "plant": 0.28},
-        "performance": {"rain": 0.30, "layers": 1, "taps": 4, "level": 2, "clear": 2, "vibrance": 0.22, "plant": 0.14},
+        "quality": {"rain": 0.72, "layers": 2, "taps": 8, "level": 3, "clear": 3, "vibrance": 0.14, "plant": 0.04},
+        "performance": {"rain": 0.30, "layers": 1, "taps": 4, "level": 2, "clear": 2, "vibrance": 0.08, "plant": 0.00},
     }
     frames = {}
     finished = {}
@@ -347,10 +359,13 @@ def main() -> None:
         raise SystemExit(f"o pôr do sol foi tratado como poste ({sunset_delta:.3f})")
     haze_before = luma(pixel(day_q, width, *MARK["haze"]))
     haze_after = luma(pixel(day_done, width, *MARK["haze"]))
-    sky_before = luma(pixel(day_q, width, *MARK["sky"]))
-    sky_after = luma(pixel(day_done, width, *MARK["sky"]))
-    if haze_after >= haze_before - 0.04:
+    sky_before = luma(pixel(day_q, width, *MARK["haze_sky"]))
+    sky_after = luma(pixel(day_done, width, *MARK["haze_sky"]))
+    haze_drop = haze_before - haze_after
+    if haze_drop < 0.03:
         raise SystemExit(f"a névoa do prédio distante não recuou ({haze_before:.3f} -> {haze_after:.3f})")
+    if haze_drop > 0.16:
+        raise SystemExit(f"a limpeza do horizonte ficou dura ({haze_before:.3f} -> {haze_after:.3f})")
     if (sky_before - haze_before) >= (sky_after - haze_after):
         raise SystemExit("o horizonte não ganhou separação")
     shadow_before = luma(pixel(night_q, width, *MARK["shadow"]))
@@ -360,22 +375,37 @@ def main() -> None:
     plant_before = saturation(pixel(day_q, width, *MARK["plant"]))
     plant_after = saturation(pixel(day_done, width, *MARK["plant"]))
     plant_perf = saturation(pixel(frames["performance"][3], width, *MARK["plant"]))
-    if plant_after < plant_before + 0.03:
-        raise SystemExit(f"a vegetação não ficou mais viva ({plant_before:.3f} -> {plant_after:.3f})")
-    if plant_perf >= plant_after:
-        raise SystemExit("Performance deveria saturar menos que Quality")
-    if plant_after > 0.62:
+    plant_gain = plant_after - plant_before
+    if plant_gain > 0.06:
+        raise SystemExit(f"vegetação saturada demais ({plant_before:.3f} -> {plant_after:.3f})")
+    if plant_after + 0.03 < plant_before:
+        raise SystemExit(f"vegetação ficou lavada ({plant_before:.3f} -> {plant_after:.3f})")
+    if plant_perf > plant_after + 0.005:
+        raise SystemExit("Performance ficou mais saturada que Quality")
+    if plant_after > 0.52:
         raise SystemExit(f"vegetação neon ({plant_after:.3f})")
-    vivid = vibrance(grade((0.22, 0.55, 0.16), "quality"), 0.36, 0.28)
-    if saturation(vivid) > 0.78:
-        raise SystemExit(f"verde já vivo passou do limite ({saturation(vivid):.3f})")
-    skin = vibrance(grade((0.76, 0.56, 0.46), "quality"), 0.36, 0.28)
-    skin_gain = saturation(skin) - saturation(grade((0.76, 0.56, 0.46), "quality"))
-    if skin_gain > plant_after - plant_before:
-        raise SystemExit("pele ganhou mais saturação que a vegetação")
+    vivid = vibrance(grade((0.22, 0.55, 0.16), "quality"), 0.14, 0.04)
+    if saturation(vivid) > saturation(grade((0.22, 0.55, 0.16), "quality")) + 0.04:
+        raise SystemExit(f"verde já vivo ainda subiu ({saturation(vivid):.3f})")
+    skin_src = grade((0.76, 0.56, 0.46), "quality")
+    skin = vibrance(skin_src, 0.14, 0.04)
+    if skin[0] > skin_src[0] + 0.03:
+        raise SystemExit(f"pele ficou laranja ({tuple(round(c, 3) for c in skin)})")
+    sky_src = pixel(day_q, width, *MARK["sky"])
+    sky_out = pixel(day_done, width, *MARK["sky"])
+    if (sky_out[2] - sky_out[0]) > (sky_src[2] - sky_src[0]) + 0.04:
+        raise SystemExit("o céu ficou mais azul do que o quadro original")
+    shirt = pixel(day_done, width, *MARK["shirt"])
+    if max(shirt) > 0.955:
+        raise SystemExit(f"camisa branca estourou {tuple(round(c, 3) for c in shirt)}")
+    if min(shirt) < 0.82:
+        raise SystemExit(f"camisa branca ficou cinza {tuple(round(c, 3) for c in shirt)}")
+    cloud = pixel(day_done, width, *MARK["cloud"])
+    if max(cloud) > 0.955 or min(cloud) < 0.82:
+        raise SystemExit(f"nuvem fora da faixa {tuple(round(c, 3) for c in cloud)}")
     car = pixel(day_done, width, *MARK["car"])
-    if max(car) > 0.98 and saturation(car) > 0.9:
-        raise SystemExit("carro estourou vermelho")
+    if max(car) > 0.92:
+        raise SystemExit(f"carro estourou vermelho {tuple(round(c, 3) for c in car)}")
     print(
         f"previews ok desligado={off_hits} noite_gotas={night_hits} dia_gotas={day_hits} "
         f"fraca={light_hits} borda={border} centro={center} "

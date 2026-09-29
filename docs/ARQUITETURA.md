@@ -14,13 +14,13 @@ Performance, ativas: `FGM_Lut`, `FGM_ClearView`, `FGM_Lamps`, `FGM_Sharp`, `FGM_
 
 `FGM_Rain` está nas duas edições, mas fora de `Techniques=`. O preset só a lista em `TechniqueSorting=`, desmarcada. Enquanto estiver desmarcada, o passo não roda: menu, clima limpo e noite seca ficam sem gotas.
 
-A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o véu branco antes do bloom, para o halo não espalhar essa névoa. O bloom da Quality continua só acima do limiar 0,80. `FGM_Lamps` entra depois do bloom: o núcleo do poste é neutralizado por último, senão o bloom devolve o amarelo para cima dele. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último.
+A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o véu branco antes do bloom, para o halo não espalhar essa névoa. O bloom da Quality só entra acima do limiar 0,88, com quantidade 0,10, para camisa, nuvem e calçada não ganharem halo. `FGM_Lamps` entra depois do bloom: o núcleo do poste é neutralizado por último, senão o bloom devolve o amarelo para cima dele. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último.
 
 ## LUT
 
-`grade()` em `tools/build_dist.py` gera uma faixa 32³, 1024×32. Quality usa contraste 1,11 a partir dos meios-tons, sombra cerca de 6% mais escura, tinta fria na sombra e um empurrão curto no azul de céu e no laranja de pôr do sol. Verde dominante recebe menos dessa tinta. Performance usa contraste 1,055 e sombra 2,8%. A LUT não reduz mais a saturação global.
+`grade()` em `tools/build_dist.py` gera uma faixa 32³, 1024×32. Quality usa contraste 1,06 a partir dos meios-tons e sombra cerca de 4% mais escura. Performance usa contraste 1,035 e sombra 2%. Uma joelha a partir de 0,78 segura o topo: branco continua branco, mas um valor perto de 1,00 não gruda no estouro. O empurrão de céu e de pôr do sol é curto. Verde dominante recebe menos tinta fria.
 
-A vivacidade fica no shader `FGM_Lut.fx`, no slider Vivacidade. Quality abre em 0,36 e Performance em 0,22. O ganho prefere meios-tons pouco saturados. Sombra, branco neutro, cor que já está forte e tom de pele recebem pouco. Verde da vegetação tem um acréscimo próprio, 0,28 na Quality e 0,14 na Performance, e para quando o verde já é alto.
+A vivacidade fica no shader `FGM_Lut.fx`. Quality abre em 0,14 e Performance em 0,08. Verde, azul de céu e laranja forte recebem só uma fração desse ganho. Sombra, branco, pele e cor que já está viva quase não mexem. O extra de vegetação é 0,04 na Quality e zero na Performance.
 
 A LUT não sabe a hora do jogo. Pixel escuro escurece um pouco. Pixel que já é céu ou pôr do sol muda de cor dentro do quadro que o servidor desenhou.
 
@@ -34,7 +34,7 @@ O shader não recebe o tipo da luz. Farol quase branco, neon, semáforo, emergê
 
 ## Horizonte
 
-`FGM_ClearView.fx` estima névoa branca por cor: luminância média-alta e saturação baixa. Não usa profundidade. O slider Horizonte vai de 0 a 3. Quality abre em 3 (força 0,34). Performance abre em 2 (força 0,22). Sombra, luz estourada e cor já saturada não entram, então a cena inteira não escurece e a neblina real só perde o leite. Não há kernel, para não desenhar halo. O manifesto marca `effects.clear_view` como `local-approximation`.
+`FGM_ClearView.fx` estima névoa branca por cor: luminância média-alta e saturação baixa. Não usa profundidade. O slider Horizonte vai de 0 a 3. Quality abre em 3, com força 0,20. Performance abre em 2, com força 0,13. O véu recua sem deixar o horizonte duro. Sombra, luz estourada e cor já saturada não entram. Não há kernel, para não desenhar halo. O manifesto marca `effects.clear_view` como `local-approximation`.
 
 ## Chuva e sangue
 
