@@ -1,0 +1,5 @@
+FGM quality — mod gráfico local para o PC do jogador.
+Não é resource de servidor. Não copie esta pasta para resources.
+Instale o ReShade oficial na pasta plugins do FiveM e depois copie
+os arquivos listados em manifest.json para os destinos indicados.
+Leia docs/INSTALACAO.md no repositório antes de usar.

@@ -1,47 +1,42 @@
 # Desinstalação
 
-O resource não edita `update.rpf`, `visualsettings.dat` nem a pasta do GTA. Remover o resource desliga o pacote.
+A remoção apaga só os arquivos que este pacote colocou em `plugins` e devolve os que tinham sido substituídos. O ReShade em si (`dxgi.dll`, `ReShade.ini`) permanece, porque não faz parte do pacote.
 
-## Parar sem apagar
+## Pelo manifesto
 
-No console do servidor:
+O contrato está em `dist/quality/manifest.json` ou `dist/performance/manifest.json`.
 
-```
-stop fivem-graphics-mod
-```
+Para cada item de `files`:
 
-No cliente, ao parar, o script:
+1. Se a instalação guardou backup daquele destino, copie o backup de volta para o mesmo caminho.
+2. Se não havia arquivo antes, apague o destino.
+3. Não toque na lista `do_not_touch`.
 
-- limpa o timecycle principal e o extra de chuva
-- zera a intensidade extra da chuva
-- desliga trilha de pneu e pegada molhada forçadas
-- devolve sombra e alcance de luz ao valor de sessão
-- reaplica as chaves listadas em `shared/visual_settings.lua` (`restore`)
-- esconde gotas e sangue
+`tools/apply_manifest.py` faz exatamente isso quando existe o recibo gerado por ele:
 
-Também dá para desligar só no seu personagem, sem parar o resource para os outros:
-
-```
-/grafico desligar
+```text
+python3 tools/apply_manifest.py uninstall --edition quality --plugins CAMINHO\plugins --backup CAMINHO\backup-fgm
 ```
 
-## Remover de vez
+No Windows o instalador futuro usa a mesma regra. O detalhe está em `INTEGRACAO_INSTALADOR.md`.
 
-1. Apague a linha `ensure fivem-graphics-mod` do `server.cfg`.
-2. Apague `setr fgm_profile` se tiver colocado.
-3. Pare o resource ou reinicie o servidor.
-4. Apague a pasta `resources/fivem-graphics-mod`.
+## Na mão
 
-Peça para os jogadores reconectarem. Fechar o FiveM recarrega o `visualsettings.dat` dos arquivos do jogo. Isso completa a volta ao visual original, mesmo que outro script tenha alterado floats naquela sessão.
+1. Feche o FiveM.
+2. Abra `%LOCALAPPDATA%\FiveM\FiveM.app\plugins`.
+3. Apague o preset da edição: `FGM-Quality.ini` ou `FGM-Performance.ini`.
+4. Apague a pasta `reshade-shaders\Shaders\FGM`.
+5. Apague a pasta `reshade-shaders\Textures\FGM`.
+6. Se você tinha substituído algum desses arquivos, copie o backup de volta antes de apagar.
+7. Deixe `dxgi.dll`, `d3d11.dll` (se você tiver renomeado) e `ReShade.ini` no lugar, a menos que queira remover o ReShade por completo.
 
-## ReShade
+## Remover o ReShade também
 
-Se você instalou um preset desta pasta:
+Isso é separado do FGM.
 
-1. Abra o ReShade e escolha outro preset, ou desligue as técnicas.
-2. Apague `Quality.ini` e `Performance.ini` da pasta do ReShade.
-3. O ReShade em si pode permanecer instalado. Ele não faz parte do resource.
+1. Apague `dxgi.dll` (ou `d3d11.dll`, se tiver sido renomeado) de `plugins`.
+2. Apague `ReShade.ini` somente se você não quiser mais nenhuma configuração do ReShade.
+3. Se você colou uma linha de reconhecimento em `CitizenFX.ini`, restaure o backup desse arquivo.
+4. Confira que a pasta do GTA V não ficou com `dxgi.dll`.
 
-## O que não precisa desfazer
-
-Não há backup de arquivo do jogo para restaurar por cima da instalação, porque a instalação não troca arquivo nenhum. A lista do que o resource mexe, e os valores usados ao parar, está em [BACKUP.md](BACKUP.md).
+Não restaure nem apague `update.rpf`. Este pacote nunca o altera.
