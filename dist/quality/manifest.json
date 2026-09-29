@@ -13,7 +13,7 @@
     "fivem_plugins_explorer_name": "FiveM Application Data\\plugins"
   },
   "effects": {
-    "screen_rain": "local-heuristic",
+    "screen_rain": "manual-toggle",
     "damage_blood": "unavailable"
   },
   "install_policy": {
@@ -42,8 +42,8 @@
       "source": "FGM-Quality.ini",
       "destination_dir": "{fivem_plugins}",
       "destination": "{fivem_plugins}/FGM-Quality.ini",
-      "sha256": "09aa82c04b9003e764eb465d85c3755847512580d5fdaf6a9914c0c68923f0af",
-      "bytes": 454,
+      "sha256": "b379ac60364ce8522970f949df30d2cf10fe1e2ae98af61956640d543f5071c6",
+      "bytes": 433,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"
@@ -82,8 +82,8 @@
       "source": "reshade-shaders/Shaders/FGM/FGM_Rain.fx",
       "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
       "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
-      "sha256": "8b7716e1cf63b0273b96d2963031d93cc856464643f1629ef8c558e9ba626e8e",
-      "bytes": 3402,
+      "sha256": "e753088e8c9f9060464293fb8984f7688de15028d6682a5f57651409a58a600b",
+      "bytes": 3252,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"

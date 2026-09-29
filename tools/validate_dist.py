@@ -54,6 +54,8 @@ def main() -> None:
             fail(f"{edition}: schema precisa ser 2")
         if manifest.get("effects", {}).get("damage_blood") != "unavailable":
             fail(f"{edition}: sangue por dano não pode ser anunciado como disponível")
+        if manifest.get("effects", {}).get("screen_rain") != "manual-toggle":
+            fail(f"{edition}: chuva não pode ser anunciada como detecção automática")
         if manifest.get("kind") != "client-local":
             fail(f"{edition}: kind precisa ser client-local")
         if manifest.get("edition") != edition:
@@ -87,10 +89,19 @@ def main() -> None:
         if not preset.is_file():
             fail(f"preset ausente: {preset}")
         preset_text = preset.read_text(encoding="utf-8")
-        for technique in preset_text.split("Techniques=", 1)[1].splitlines()[0].split(","):
+        enabled = preset_text.split("Techniques=", 1)[1].splitlines()[0].split(",")
+        sorting = preset_text.split("TechniqueSorting=", 1)[1].splitlines()[0].split(",")
+        for technique in enabled + sorting:
             filename = technique.split("@", 1)[1]
             if not (folder / "reshade-shaders" / "Shaders" / "FGM" / filename).is_file():
                 fail(f"técnica aponta para shader ausente: {technique}")
+        if any(item.startswith("FGM_Rain@") for item in enabled):
+            fail(f"{edition}: FGM_Rain está ativo no preset e apareceria sem chuva e no menu")
+        if "FGM_Rain@FGM_Rain.fx" not in sorting:
+            fail(f"{edition}: FGM_Rain precisa ficar disponível, desligado, no overlay")
+        rain_shader = (folder / "reshade-shaders" / "Shaders" / "FGM" / "FGM_Rain.fx").read_text(encoding="utf-8")
+        if "float weather" in rain_shader or "cena escura" in rain_shader:
+            fail(f"{edition}: FGM_Rain ainda usa heurística de cena escura")
         if edition == "performance" and "FGM_Bloom" in preset_text:
             fail("performance não pode ativar o bloom pesado")
         if edition == "quality" and "FGM_Bloom@FGM_Bloom.fx" not in preset_text:

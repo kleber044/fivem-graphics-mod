@@ -1,5 +1,6 @@
-// Gotas na lente. Não leem o clima do GTA: entram em cena escura e pouco saturada.
-// O centro fica de fora. O tamanho varia e a gota desvia a imagem atrás dela.
+// Gotas na lente da câmera. Não lê o clima do GTA, o menu do FiveM nem a memória do processo.
+// O preset deixa esta técnica desligada. Ela só desenha quando o jogador a marca no ReShade.
+// A chuva do mundo continua sendo a do jogo. Isto só acrescenta água na tela.
 #include "FGM.fxh"
 
 uniform float RainStrength <
@@ -67,6 +68,10 @@ void FGM_Layer(float2 uv, float scale, float speed, float time, out float drop, 
 
 float4 FGM_RainPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
 {
+    float3 color = tex2D(ReShade::BackBuffer, uv).rgb;
+    if (RainStrength <= 0.001)
+        return float4(color, 1.0);
+
     float2 fromCenter = uv - float2(0.5, 0.46);
     float edge = smoothstep(0.22, 0.58, length(fromCenter * float2(1.08, 1.0)));
 
@@ -86,19 +91,11 @@ float4 FGM_RainPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
         drops = max(drops, layerDrop * 0.72);
     }
 
-    float2 sampleUv = uv + warp * edge * RainDistort * 0.018;
-    float3 color = tex2D(ReShade::BackBuffer, sampleUv).rgb;
-    float luma = dot(color, float3(0.2126, 0.7152, 0.0722));
-    float peak = max(color.r, max(color.g, color.b));
-    float floorc = min(color.r, min(color.g, color.b));
-    float saturation = (peak - floorc) / max(peak, 0.001);
-    float dark = saturate((0.46 - luma) / 0.46);
-    float dull = saturate((0.42 - saturation) / 0.42);
-    float weather = dark * lerp(0.35, 1.0, dull);
-
-    float mask = drops * weather * edge * RainStrength;
+    float amount = drops * edge * RainStrength;
+    float2 sampleUv = uv + warp * edge * RainDistort * RainStrength * 0.018;
+    color = tex2D(ReShade::BackBuffer, sampleUv).rgb;
     float3 highlight = float3(0.82, 0.88, 0.93);
-    color = lerp(color, highlight, saturate(mask) * 0.42);
+    color = lerp(color, highlight, saturate(amount) * 0.42);
     return float4(saturate(color), 1.0);
 }
 

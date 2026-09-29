@@ -25,7 +25,6 @@ EDITIONS = {
             "FGM_Bloom@FGM_Bloom.fx",
             "FGM_Sharp@FGM_Sharp.fx",
             "FGM_Vignette@FGM_Vignette.fx",
-            "FGM_Rain@FGM_Rain.fx",
         ],
         "uniforms": {
             "FGM_Bloom.fx": {"BloomThreshold": "0.800", "BloomAmount": "0.180"},
@@ -49,7 +48,6 @@ EDITIONS = {
             "FGM_Lut@FGM_Lut.fx",
             "FGM_Sharp@FGM_Sharp.fx",
             "FGM_Vignette@FGM_Vignette.fx",
-            "FGM_Rain@FGM_Rain.fx",
         ],
         "uniforms": {
             "FGM_Sharp.fx": {"SharpStrength": "0.140"},
@@ -156,10 +154,13 @@ def build_lut(path: Path, edition: str) -> None:
 
 
 def preset_text(edition: str, spec: dict) -> str:
-    techniques = ",".join(spec["techniques"])
+    # Techniques= é o que roda. FGM_Rain fica fora dessa lista.
+    # TechniqueSorting= só o oferece no overlay, desmarcado, para o jogador ligar.
+    enabled = ",".join(spec["techniques"])
+    sorting = enabled + ",FGM_Rain@FGM_Rain.fx"
     lines = [
-        f"Techniques={techniques}",
-        f"TechniqueSorting={techniques}",
+        f"Techniques={enabled}",
+        f"TechniqueSorting={sorting}",
         "",
     ]
     for shader, values in spec["uniforms"].items():
@@ -208,7 +209,7 @@ def manifest(edition: str, spec: dict, folder: Path, files: list[tuple[str, str]
             "fivem_plugins_explorer_name": "FiveM Application Data\\plugins",
         },
         "effects": {
-            "screen_rain": "local-heuristic",
+            "screen_rain": "manual-toggle",
             "damage_blood": "unavailable",
         },
         "install_policy": {
@@ -358,6 +359,9 @@ def assemble_release() -> None:
                 "4. O preset da edição escolhida já fica selecionado.",
                 "5. Para trocar, feche o jogo e execute a outra instalação.",
                 "6. Desinstalar.cmd restaura o backup e remove só o que o FGM criou.",
+                "7. FGM_Rain começa desligado. Não há gotas no menu nem em clima limpo.",
+                "8. Quando chover no jogo, abra o ReShade com Home e marque FGM_Rain.",
+                "9. Força das gotas sobe a intensidade. Desmarque a técnica quando a chuva acabar.",
                 "",
                 "O ReShade 6.8.0 é baixado de https://reshade.me/ durante a instalação.",
                 "O binário não vem neste pacote.",

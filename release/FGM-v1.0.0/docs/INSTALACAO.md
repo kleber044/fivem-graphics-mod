@@ -18,6 +18,8 @@ Se já existir um ReShade 5 ou mais novo em `dxgi.dll` ou `d3d11.dll`, ele é re
 
 O preset da edição fica selecionado em `ReShade.ini`. Chaves que já existiam nesse arquivo são mantidas. A cópia anterior vai para `FiveM.app\FGM-Backup\<data-hora>\`.
 
+`FGM_Rain` não entra ligado. No jogo, Home abre o ReShade: marque essa técnica só enquanto a chuva do GTA estiver na tela e desmarque quando ela acabar. O detalhe está em `docs/COMPATIBILIDADE.md`.
+
 ## O que não fazer
 
 Não copie a pasta para `resources`. Não edite `server.cfg`. Não instale as duas edições ao mesmo tempo: rode o instalador da outra edição para trocar.
