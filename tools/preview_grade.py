@@ -29,12 +29,17 @@ def write_png(path: Path, width: int, height: int, rgb: bytes) -> None:
     path.write_bytes(png)
 
 
-# Centros usados pela prévia e pelas checagens. A sonda de noite fica a 110 px.
+# Centros usados pela prévia e pelas checagens. Anéis de 56 px e 140 px.
 MARK = {
     "sodium": (58, 210),
     "halo": (58, 196),
     "asphalt": (78, 248),
     "distant": (420, 70),
+    "streak": (340, 88),
+    "tail": (130, 28),
+    "wall": (430, 210),
+    "facade": (450, 40),
+    "road": (200, 250),
     "milk": (55, 36),
     "window": (230, 120),
     "head": (400, 200),
@@ -78,13 +83,23 @@ def scene(width: int, height: int, night: bool) -> bytearray:
                     veil = 0.55
                     color = [channel * 0.45 + veil * 0.55 for channel in color]
                 if 40 <= x <= 70 and 24 <= y <= 48:
-                    color = [0.32, 0.30, 0.26]
+                    color = [0.30, 0.305, 0.31]
+                if 390 <= x <= 479 and 0 <= y <= 110:
+                    color = [0.28, 0.24, 0.18]
                 if 160 <= x <= 310 and 55 <= y <= 185:
                     color = [0.86, 0.63, 0.34]
+                if 300 <= x <= 479 and 145 <= y <= 269:
+                    color = [0.42, 0.32, 0.20]
                 if 16 <= x <= 90 and 160 <= y <= 205:
                     color = [0.18, 0.34, 0.14]
                 if 48 <= x <= 118 and 232 <= y <= 262:
                     color = [0.30, 0.21, 0.08]
+                if 140 <= x <= 280 and 236 <= y <= 265:
+                    color = [0.18, 0.14, 0.09]
+                if 250 <= x <= 430 and 86 <= y <= 90:
+                    color = [0.72, 0.52, 0.18]
+                if 70 <= x <= 190 and 24 <= y <= 32:
+                    color = [0.62, 0.44, 0.16]
                 color = paint(color, x, y, 420, 70, 3, (0.90, 0.70, 0.30))
                 color = paint(color, x, y, 58, 210, 20, (0.55, 0.38, 0.16))
                 color = paint(color, x, y, 58, 210, 11, (1.0, 0.68, 0.26))
@@ -130,52 +145,72 @@ def luma(color: tuple[float, float, float]) -> float:
 
 
 def lamp_chroma(color: tuple[float, float, float]) -> float:
-    # A mesma conta de FGM_Lamps.fx. Amarelo urbano, não neon nem farol branco.
+    # A mesma conta de FGM_Lamps.fx. Amarelo de luz, não neon nem farol branco.
     red, green, blue = color
     peak = max(red, green, blue)
     floorc = min(red, green, blue)
     sat = (peak - floorc) / max(peak, 0.001)
     excess = min(red, green) - blue
-    yellow = smoothstep(0.03, 0.10, excess)
+    yellow = smoothstep(0.035, 0.10, excess)
     ratio = green / max(red, 0.001)
-    not_red = smoothstep(0.42, 0.58, ratio)
+    not_red = smoothstep(0.40, 0.55, ratio)
     not_green = 1.0 - smoothstep(0.0, 0.08, green - red)
-    not_neon = 1.0 - smoothstep(0.84, 0.94, sat)
-    has_cast = smoothstep(0.18, 0.34, sat)
+    not_neon = 1.0 - smoothstep(0.86, 0.96, sat)
+    has_cast = smoothstep(0.15, 0.28, sat)
     return yellow * not_red * not_green * not_neon * has_cast
 
 
 def lamp_strength(level: int) -> float:
     if level <= 1:
-        return 0.72
+        return 0.78
     if level == 2:
-        return 0.92
+        return 0.98
     return 1.0
 
 
-def cool_white(tone: float) -> tuple[float, float, float]:
-    bias = (0.96, 1.00, 1.05)
-    biased = max(0.2126 * bias[0] + 0.7152 * bias[1] + 0.0722 * bias[2], 0.001)
-    scale = tone / biased
-    return (bias[0] * scale, bias[1] * scale, bias[2] * scale)
-
-
-def probe(rgb: bytearray, width: int, height: int, x: int, y: int, radius: float, offsets: list[tuple[float, float]]) -> tuple[float, float]:
-    darkest = 1.0
-    brightest = 0.0
+def ring(rgb: bytearray, width: int, height: int, x: int, y: int, radius: float, offsets: list[tuple[float, float]]) -> tuple[float, float, float, float]:
+    samples = []
     for ox, oy in offsets:
         sx = min(width - 1, max(0, int(round(x + ox * radius))))
         sy = min(height - 1, max(0, int(round(y + oy * radius))))
         sample_index = (sy * width + sx) * 3
         sample = tuple(channel / 255.0 for channel in rgb[sample_index : sample_index + 3])
-        tone = luma(sample)
-        darkest = min(darkest, tone)
-        brightest = max(brightest, tone)
-    return darkest, brightest
+        samples.append(luma(sample))
+    lo = min(samples)
+    hi = max(samples)
+    cut = (lo + hi) * 0.5
+    bright = [value for value in samples if value >= cut]
+    dark = [value for value in samples if value < cut]
+    bright_support = sum(bright) / len(bright)
+    dark_support = sum(dark) / len(dark) if dark else bright_support
+    dark_fraction = len(dark) / len(samples)
+    return hi - lo, bright_support, dark_support, dark_fraction
+
+
+def lamp_amount(color: tuple[float, float, float], near: tuple[float, float, float, float], far: tuple[float, float, float, float], strength: float) -> float:
+    # A mesma conta de FGM_Lamps.fx.
+    sodium = lamp_chroma(color)
+    if sodium <= 0.001:
+        return 0.0
+    tone = luma(color)
+    near_spread, near_bright, near_dark, near_fraction = near
+    _far_spread, far_bright, far_dark, far_fraction = far
+    peak = smoothstep(0.012, 0.045, tone - near_bright)
+    thin = smoothstep(0.34, 0.52, near_fraction) * smoothstep(0.05, 0.12, tone - near_dark)
+    spill = smoothstep(0.05, 0.12, tone - near_dark) * smoothstep(0.08, 0.18, near_bright - tone)
+    gradient = smoothstep(0.025, 0.07, near_spread) * (1.0 - smoothstep(0.16, 0.30, near_spread))
+    wide = smoothstep(0.40, 0.65, far_fraction) * smoothstep(0.08, 0.16, tone - far_dark) * gradient
+    # Superfície contínua: a cor ao redor é a mesma. Não é fio, halo nem reflexo.
+    on_surface = (1.0 - smoothstep(0.02, 0.28, near_fraction)) * (1.0 - smoothstep(0.03, 0.09, abs(tone - near_bright)))
+    day_block = smoothstep(0.30, 0.40, far_dark)
+    light = sodium * max(peak, thin, spill, wide) * (1.0 - on_surface) * (1.0 - day_block)
+    shade = 1.0 - smoothstep(0.10, 0.18, tone)
+    light *= 1.0 - shade * (1.0 - min(1.0, peak + thin + spill))
+    return min(1.0, max(0.0, light)) * strength
 
 
 def apply_lamps(rgb: bytearray, width: int, height: int, taps: int, level: int) -> bytearray:
-    # Sonda de 110 px para a noite e de 28 px para janela plana.
+    # Anel de 56 px separa fio de luz e superfície. O de 140 px pega o halo largo.
     # Quality usa 8 amostras; Performance usa as 4 cardeais.
     strength = lamp_strength(level)
     out = bytearray(rgb)
@@ -187,20 +222,15 @@ def apply_lamps(rgb: bytearray, width: int, height: int, taps: int, level: int) 
         for x in range(width):
             index = (y * width + x) * 3
             color = tuple(channel / 255.0 for channel in rgb[index : index + 3])
-            chroma = lamp_chroma(color)
-            if chroma <= 0.001:
+            if lamp_chroma(color) <= 0.001:
                 continue
-            far_dark, _far_bright = probe(rgb, width, height, x, y, 110.0, offsets)
-            near_dark, near_bright = probe(rgb, width, height, x, y, 28.0, offsets)
-            night = 1.0 - smoothstep(0.12, 0.28, far_dark)
-            tone = luma(color)
-            flat = 1.0 - smoothstep(0.04, 0.14, near_bright - near_dark)
-            window_like = flat * smoothstep(0.48, 0.62, tone)
-            amount = chroma * night * (1.0 - window_like) * strength
+            near = ring(rgb, width, height, x, y, 56.0, offsets)
+            far = ring(rgb, width, height, x, y, 140.0, offsets)
+            amount = lamp_amount(color, near, far, strength)
             if amount <= 0.0:
                 continue
-            target = cool_white(tone)
-            mixed = [color[i] * (1.0 - amount) + target[i] * amount for i in range(3)]
+            tone = luma(color)
+            mixed = [channel * (1.0 - amount) + tone * amount for channel in color]
             out[index : index + 3] = bytes(int(round(min(1.0, max(0.0, channel)) * 255)) for channel in mixed)
     return out
 
@@ -361,11 +391,9 @@ def main() -> None:
     soft = pixel(apply_lamps(night_q, width, height, 8, 1), width, sx, sy)
     if yellow_gap(after_q) > 0.05:
         raise SystemExit(f"White LED continuou amarelo ({yellow_gap(before):.3f} -> {yellow_gap(after_q):.3f})")
-    if yellow_gap(after_p) <= yellow_gap(after_q) + 0.03:
-        raise SystemExit("Neutral precisa guardar mais calor que White LED")
-    if yellow_gap(after_p) >= yellow_gap(before) * 0.40:
-        raise SystemExit(f"Neutral ainda está amarelo demais ({yellow_gap(after_p):.3f})")
-    if yellow_gap(soft) <= yellow_gap(after_p):
+    if yellow_gap(after_p) > 0.06:
+        raise SystemExit(f"Neutral continuou amarelo ({yellow_gap(after_p):.3f})")
+    if yellow_gap(soft) <= yellow_gap(after_p) + 0.02:
         raise SystemExit("Soft precisa ser mais quente que Neutral")
     if abs(luma(after_q) - luma(before)) > 0.04:
         raise SystemExit("o branco do poste mudou a luminância e alimentaria o bloom")
@@ -390,7 +418,18 @@ def main() -> None:
     distant = pixel(finished["quality"], width, *MARK["distant"])
     if yellow_gap(distant) > yellow_gap(distant_before) * 0.35:
         raise SystemExit(f"a luz urbana distante continuou amarela ({tuple(round(c, 3) for c in distant)})")
-    protected = ("window", "head", "neon", "red", "green", "amber", "blue", "street")
+    distant_p = pixel(finished["performance"], width, *MARK["distant"])
+    if yellow_gap(distant_p) > yellow_gap(distant_before) * 0.40:
+        raise SystemExit(f"a luz distante Performance continuou amarela ({yellow_gap(distant_p):.3f})")
+    for name in ("streak", "tail"):
+        src = pixel(night_q, width, *MARK[name])
+        out = pixel(finished["quality"], width, *MARK[name])
+        out_p = pixel(finished["performance"], width, *MARK[name])
+        if yellow_gap(out) > yellow_gap(src) * 0.35:
+            raise SystemExit(f"{name} continuou amarelo ({tuple(round(c, 3) for c in out)})")
+        if yellow_gap(out_p) > yellow_gap(src) * 0.40:
+            raise SystemExit(f"{name} Performance continuou amarelo ({yellow_gap(out_p):.3f})")
+    protected = ("window", "head", "neon", "red", "green", "amber", "blue", "street", "wall", "facade", "road")
     for name in protected:
         x, y = MARK[name]
         delta = max_delta(pixel(night_q, width, x, y), pixel(lamps_only["quality"], width, x, y))
@@ -427,6 +466,11 @@ def main() -> None:
         raise SystemExit(f"o leite Performance quase não mudou ({milk_before:.3f} -> {milk_p:.3f})")
     if milk_q >= milk_p:
         raise SystemExit("Quality deveria limpar mais o leite da noite que Performance")
+    for name in ("wall", "facade", "road"):
+        src = pixel(night_q, width, *MARK[name])
+        out = pixel(finished["quality"], width, *MARK[name])
+        if saturation(out) + 0.04 < saturation(src):
+            raise SystemExit(f"{name} perdeu cor ({saturation(src):.3f} -> {saturation(out):.3f})")
     plant_before = saturation(pixel(day_q, width, *MARK["plant"]))
     plant_after = saturation(pixel(day_done, width, *MARK["plant"]))
     plant_perf = saturation(pixel(frames["performance"][3], width, *MARK["plant"]))

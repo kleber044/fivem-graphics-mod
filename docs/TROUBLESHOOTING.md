@@ -34,11 +34,11 @@ Isso é o padrão. Abra o ReShade com Home e marque `FGM_Rain`. Força das gotas
 
 ## O poste continua amarelo
 
-Quality deve estar no nível 3, White LED, e `FGM_Lamps` precisa estar marcada. O ajuste corre quando a cor é amarelo ou laranja de saturação média e existe um ponto escuro até 110 pixels. Uma cena inteira clara, como o dia, não muda. Neon, semáforo e farol quase branco também não.
+Quality deve estar no nível 3, White LED, e `FGM_Lamps` precisa estar marcada. O ajuste corre no amarelo que se destaca da superfície: núcleo, halo, ponto distante, rastro e reflexo claro no chão. Uma parede contínua e o dia claro não mudam. Neon, semáforo e farol quase branco também não.
 
 ## Uma janela ou um letreiro ficou branco
 
-Janela clara e plana fica de fora. Um letreiro amarelo pequeno, ou uma parede quente que não é plana, pode clarear. Baixe o slider Postes para Neutral ou Soft, ou desmarque `FGM_Lamps`.
+Janela plana e parede contínua ficam de fora. Um letreiro amarelo pequeno pode clarear, porque tem o mesmo desenho de um ponto de luz. Baixe o slider Postes para Neutral ou Soft, ou desmarque `FGM_Lamps`.
 
 ## As cores ficaram fortes demais
 
@@ -46,7 +46,7 @@ Baixe Vivacidade no overlay. Quality abre em 0,14 e Performance em 0,08. Verde, 
 
 ## A noite continua leitosa, ou ficou escura demais
 
-O slider Horizonte da `FGM_ClearView` vai de 0 a 3. Quality abre em 3 e Performance em 2. O leite entre 0,10 e 0,50 de luminância recua e perde o tom quente. Zero devolve o véu original. Sombra muito escura não entra. O efeito não enxerga distância: um cinza lavado nessa faixa é tratado como névoa.
+O slider Horizonte da `FGM_ClearView` vai de 0 a 3. Quality abre em 3 e Performance em 2. Só o leite quase sem cor, entre 0,12 e 0,46 de luminância, recua. Parede, rua e planta não são empurradas para o cinza. Zero devolve o véu original. O efeito não enxerga distância.
 
 ## As duas edições parecem misturadas
 

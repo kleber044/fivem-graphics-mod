@@ -1,6 +1,5 @@
-// Véu do horizonte e leite da noite. Não lê profundidade nem o clima.
-// O leite noturno é o cinza baixo, de 0.10 a 0.50 de luminância.
-// Sombras reais, cores vivas e o núcleo das luzes ficam de fora.
+// Véu do horizonte e leite cinza da noite. Não lê profundidade nem o clima.
+// Só o cinza quase sem cor entra. Parede, rua, planta e reflexo colorido ficam intactos.
 #include "FGM.fxh"
 
 uniform int ClearLevel <
@@ -27,10 +26,10 @@ float FGM_NightStrength(int level)
     if (level <= 0)
         return 0.0;
     if (level == 1)
-        return 0.06;
+        return 0.05;
     if (level == 2)
-        return 0.11;
-    return 0.18;
+        return 0.09;
+    return 0.14;
 }
 
 float4 FGM_ClearPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
@@ -47,18 +46,14 @@ float4 FGM_ClearPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     float floorc = min(color.r, min(color.g, color.b));
     float sat = (peak - floorc) / max(peak, 0.001);
     float dayGray = 1.0 - smoothstep(0.05, 0.24, sat);
-    float nightGray = 1.0 - smoothstep(0.08, 0.42, sat);
+    float nightGray = 1.0 - smoothstep(0.02, 0.10, sat);
     float dayBand = smoothstep(0.40, 0.55, luma) * (1.0 - smoothstep(0.76, 0.88, luma));
-    float nightBand = smoothstep(0.10, 0.18, luma) * (1.0 - smoothstep(0.34, 0.50, luma));
-    float warm = smoothstep(0.0, 0.08, (color.r + color.g) * 0.5 - color.b);
-    float veil = max(dayGray * dayBand * dayStrength, nightGray * nightBand * nightStrength * (0.55 + 0.45 * warm));
-    if (veil <= 0.001 && nightBand <= 0.001)
+    float nightBand = smoothstep(0.12, 0.20, luma) * (1.0 - smoothstep(0.32, 0.46, luma));
+    float veil = max(dayGray * dayBand * dayStrength, nightGray * nightBand * nightStrength);
+    if (veil <= 0.001)
         return float4(color, 1.0);
 
     float3 recovered = (color - veil) / max(1.0 - veil, 0.001);
-    float recLuma = dot(recovered, float3(0.2126, 0.7152, 0.0722));
-    float neutralNight = saturate(nightStrength / 0.18) * nightGray * nightBand * (0.55 + 0.45 * warm);
-    recovered = lerp(recovered, recLuma.xxx, neutralNight);
     return float4(saturate(recovered), 1.0);
 }
 

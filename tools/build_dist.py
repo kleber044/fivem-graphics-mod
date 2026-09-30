@@ -181,7 +181,7 @@ def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, flo
     # A mesma conta de FGM_ClearView.fx. Sem amostra extra.
     level = max(0, min(3, int(level)))
     day = (0.0, 0.07, 0.13, 0.20)[level]
-    night = (0.0, 0.06, 0.11, 0.18)[level]
+    night = (0.0, 0.05, 0.09, 0.14)[level]
     if day <= 0.0 and night <= 0.0:
         return rgb
     red, green, blue = rgb
@@ -190,19 +190,14 @@ def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, flo
     floorc = min(red, green, blue)
     sat = (peak - floorc) / max(peak, 0.001)
     day_gray = 1.0 - smoothstep(0.05, 0.24, sat)
-    night_gray = 1.0 - smoothstep(0.08, 0.42, sat)
+    night_gray = 1.0 - smoothstep(0.02, 0.10, sat)
     day_band = smoothstep(0.40, 0.55, tone) * (1.0 - smoothstep(0.76, 0.88, tone))
-    night_band = smoothstep(0.10, 0.18, tone) * (1.0 - smoothstep(0.34, 0.50, tone))
-    warm = smoothstep(0.0, 0.08, (red + green) * 0.5 - blue)
-    veil = max(day_gray * day_band * day, night_gray * night_band * night * (0.55 + 0.45 * warm))
-    if veil <= 0.001 and night_band <= 0.001:
+    night_band = smoothstep(0.12, 0.20, tone) * (1.0 - smoothstep(0.32, 0.46, tone))
+    veil = max(day_gray * day_band * day, night_gray * night_band * night)
+    if veil <= 0.001:
         return rgb
     scale = 1.0 / max(1.0 - veil, 0.001)
-    recovered = [(channel - veil) * scale for channel in rgb]
-    rec_luma = 0.2126 * recovered[0] + 0.7152 * recovered[1] + 0.0722 * recovered[2]
-    neutral_night = min(1.0, night / 0.18) * night_gray * night_band * (0.55 + 0.45 * warm)
-    recovered = [channel * (1.0 - neutral_night) + rec_luma * neutral_night for channel in recovered]
-    return tuple(min(1.0, max(0.0, channel)) for channel in recovered)
+    return tuple(min(1.0, max(0.0, (channel - veil) * scale)) for channel in rgb)
 
 
 def write_png(path: Path, width: int, height: int, rgb: bytes) -> None:
