@@ -11,7 +11,7 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 | LUT cinematográfica | contraste e split de céu/pôr do sol mais presentes | a mesma direção, mais curta |
 | Postes | White LED no núcleo, 8 amostras | Neutral no núcleo, 4 amostras |
 | Horizonte | nível 3, força curta | nível 2, ainda mais curto |
-| Vivacidade | 0,14, com freio em verde, céu e laranja | 0,08, sem extra de verde |
+| Vivacidade | 0,14 à noite; de dia a calma é 0,22 | 0,08 à noite; de dia a calma é 0,14 |
 | Bloom | só acima de 0,88, quantidade 0,10 | ausente |
 | Nitidez | máscara curta | mais baixa |
 | Vinheta | leve, centro aberto | mais leve |
@@ -33,7 +33,7 @@ No overlay, `FGM_Lamps` tem o slider Postes: 1 Soft, 2 Neutral, 3 White LED. Des
 
 `FGM_ClearView` baixa o véu claro do horizonte e o leite quase cinza da noite. Superfície com cor não entra nessa conta. A névoa de clima fechado continua presente, só menos leitosa. Nível 0 desliga.
 
-A vivacidade não é um saturado global. Meios-tons apagados sobem pouco. Verde, azul de céu e laranja já forte sobem menos ainda. Pele, branco neutro, sombra, carro e placa que já têm cor quase ficam como o jogo desenhou. O slider Vivacidade calibra isso. Quality é o preset principal, num ponto moderado. Performance repete o caminho com número menor. A joelha da LUT segura camisa, nuvem e calçada clara sem pintá-las de cinza.
+A vivacidade não é um saturado global. Meios-tons apagados sobem pouco. Verde, azul de céu e laranja já forte sobem menos ainda. Pele, branco neutro, sombra, carro e placa que já têm cor quase ficam como o jogo desenhou. O slider Vivacidade calibra a cena escura. O slider Calma do dia só age quando a vizinhança está clara: grama, céu e parede quente perdem saturação, e o branco alto não estoura. A noite, os postes e o leite noturno ficam no caminho anterior. A joelha da LUT segura camisa, nuvem e calçada clara sem pintá-las de cinza.
 
 ## Chuva
 

@@ -326,12 +326,36 @@ def saturation(color: tuple[float, float, float]) -> float:
     return (peak - floorc) / max(peak, 0.001)
 
 
-def polish(graded: bytearray, width: int, height: int, amount: float, plant: float, clear: int, taps: int, level: int) -> bytearray:
+def scene_day(raw: bytearray, width: int, height: int, x: int, y: int) -> float:
+    # A mesma sonda de FGM_SceneLuma: quatro amostras a 160 px no quadro original.
+    total = 0.0
+    for ox, oy in ((1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)):
+        sx = min(width - 1, max(0, int(round(x + ox * 160.0))))
+        sy = min(height - 1, max(0, int(round(y + oy * 160.0))))
+        total += luma(pixel(raw, width, sx, sy))
+    return smoothstep(0.26, 0.46, total * 0.25)
+
+
+def polish(
+    graded: bytearray,
+    raw: bytearray,
+    width: int,
+    height: int,
+    amount: float,
+    plant: float,
+    clear: int,
+    taps: int,
+    level: int,
+    calm: float,
+) -> bytearray:
     vivid = bytearray(len(graded))
-    for index in range(0, len(graded), 3):
-        src = tuple(channel / 255.0 for channel in graded[index : index + 3])
-        color = clear_pixel(vibrance(src, amount, plant), clear)
-        vivid[index : index + 3] = bytes(int(round(min(1.0, max(0.0, channel)) * 255)) for channel in color)
+    for y in range(height):
+        for x in range(width):
+            index = (y * width + x) * 3
+            src = tuple(channel / 255.0 for channel in graded[index : index + 3])
+            day = scene_day(raw, width, height, x, y)
+            color = clear_pixel(vibrance(src, amount, plant, day, calm), clear)
+            vivid[index : index + 3] = bytes(int(round(min(1.0, max(0.0, channel)) * 255)) for channel in color)
     return apply_lamps(vivid, width, height, taps, level)
 
 
@@ -341,8 +365,8 @@ def main() -> None:
     night = scene(width, height, True)
     day = scene(width, height, False)
     look = {
-        "quality": {"rain": 0.72, "layers": 2, "taps": 8, "level": 3, "clear": 3, "vibrance": 0.14, "plant": 0.04},
-        "performance": {"rain": 0.30, "layers": 1, "taps": 4, "level": 2, "clear": 2, "vibrance": 0.08, "plant": 0.00},
+        "quality": {"rain": 0.72, "layers": 2, "taps": 8, "level": 3, "clear": 3, "vibrance": 0.14, "plant": 0.04, "calm": 0.22},
+        "performance": {"rain": 0.30, "layers": 1, "taps": 4, "level": 2, "clear": 2, "vibrance": 0.08, "plant": 0.00, "calm": 0.14},
     }
     frames = {}
     finished = {}
@@ -350,8 +374,8 @@ def main() -> None:
     for edition, spec in look.items():
         day_grade = apply_grade(day, width, height, edition)
         night_grade = apply_grade(night, width, height, edition)
-        day_done = polish(day_grade, width, height, spec["vibrance"], spec["plant"], spec["clear"], spec["taps"], spec["level"])
-        night_done = polish(night_grade, width, height, spec["vibrance"], spec["plant"], spec["clear"], spec["taps"], spec["level"])
+        day_done = polish(day_grade, day, width, height, spec["vibrance"], spec["plant"], spec["clear"], spec["taps"], spec["level"], spec["calm"])
+        night_done = polish(night_grade, night, width, height, spec["vibrance"], spec["plant"], spec["clear"], spec["taps"], spec["level"], spec["calm"])
         rainy, _hits = apply_rain(night_grade, width, height, spec["rain"], spec["layers"])
         frames[edition] = (day_grade, night_grade, rainy, day_done)
         finished[edition] = night_done
@@ -474,26 +498,33 @@ def main() -> None:
     plant_before = saturation(pixel(day_q, width, *MARK["plant"]))
     plant_after = saturation(pixel(day_done, width, *MARK["plant"]))
     plant_perf = saturation(pixel(frames["performance"][3], width, *MARK["plant"]))
-    plant_gain = plant_after - plant_before
-    if plant_gain > 0.06:
-        raise SystemExit(f"vegetação saturada demais ({plant_before:.3f} -> {plant_after:.3f})")
-    if plant_after + 0.03 < plant_before:
+    if plant_before - plant_after < 0.03:
+        raise SystemExit(f"o dia não acalmou a vegetação ({plant_before:.3f} -> {plant_after:.3f})")
+    if plant_after < 0.22:
         raise SystemExit(f"vegetação ficou lavada ({plant_before:.3f} -> {plant_after:.3f})")
-    if plant_perf > plant_after + 0.005:
-        raise SystemExit("Performance ficou mais saturada que Quality")
-    if plant_after > 0.52:
-        raise SystemExit(f"vegetação neon ({plant_after:.3f})")
-    vivid = vibrance(grade((0.22, 0.55, 0.16), "quality"), 0.14, 0.04)
-    if saturation(vivid) > saturation(grade((0.22, 0.55, 0.16), "quality")) + 0.04:
-        raise SystemExit(f"verde já vivo ainda subiu ({saturation(vivid):.3f})")
+    if plant_perf > plant_before - 0.015:
+        raise SystemExit(f"Performance não acalmou a vegetação ({plant_before:.3f} -> {plant_perf:.3f})")
+    if plant_after > plant_perf + 0.005:
+        raise SystemExit("Quality deveria acalmar o dia pelo menos tanto quanto Performance")
+    if plant_after > 0.48:
+        raise SystemExit(f"vegetação ainda forte ({plant_after:.3f})")
+    graded_green = grade((0.22, 0.55, 0.16), "quality")
+    night_green = vibrance(graded_green, 0.14, 0.04)
+    day_green = vibrance(graded_green, 0.14, 0.04, 1.0, 0.22)
+    if saturation(night_green) > saturation(graded_green) + 0.04:
+        raise SystemExit(f"verde já vivo ainda subiu à noite ({saturation(night_green):.3f})")
+    if saturation(graded_green) - saturation(day_green) < 0.04:
+        raise SystemExit(f"o verde do dia quase não cedeu ({saturation(graded_green):.3f} -> {saturation(day_green):.3f})")
+    if saturation(day_green) < 0.28:
+        raise SystemExit(f"o verde do dia ficou cinza ({saturation(day_green):.3f})")
     skin_src = grade((0.76, 0.56, 0.46), "quality")
     skin = vibrance(skin_src, 0.14, 0.04)
     if skin[0] > skin_src[0] + 0.03:
         raise SystemExit(f"pele ficou laranja ({tuple(round(c, 3) for c in skin)})")
     sky_src = pixel(day_q, width, *MARK["sky"])
     sky_out = pixel(day_done, width, *MARK["sky"])
-    if (sky_out[2] - sky_out[0]) > (sky_src[2] - sky_src[0]) + 0.04:
-        raise SystemExit("o céu ficou mais azul do que o quadro original")
+    if (sky_src[2] - sky_src[0]) - (sky_out[2] - sky_out[0]) < 0.03:
+        raise SystemExit("o céu do dia não perdeu o azul exagerado")
     shirt = pixel(day_done, width, *MARK["shirt"])
     if max(shirt) > 0.955:
         raise SystemExit(f"camisa branca estourou {tuple(round(c, 3) for c in shirt)}")

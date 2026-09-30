@@ -20,9 +20,9 @@ A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o v
 
 `grade()` em `tools/build_dist.py` gera uma faixa 32³, 1024×32. Quality usa contraste 1,06 a partir dos meios-tons e sombra cerca de 4% mais escura. Performance usa contraste 1,035 e sombra 2%. Uma joelha a partir de 0,78 segura o topo: branco continua branco, mas um valor perto de 1,00 não gruda no estouro. O empurrão de céu e de pôr do sol é curto. Verde dominante recebe menos tinta fria.
 
-A vivacidade fica no shader `FGM_Lut.fx`. Quality abre em 0,14 e Performance em 0,08. Verde, azul de céu e laranja forte recebem só uma fração desse ganho. Sombra, branco, pele e cor que já está viva quase não mexem. O extra de vegetação é 0,04 na Quality e zero na Performance.
+A vivacidade fica no shader `FGM_Lut.fx`. Quality abre em 0,14 e Performance em 0,08. Verde, azul de céu e laranja forte recebem só uma fração desse ganho. Sombra, branco, pele e cor que já está viva quase não mexem. O extra de vegetação é 0,04 na Quality e zero na Performance. Esses números valem na cena escura.
 
-A LUT não sabe a hora do jogo. Pixel escuro escurece um pouco. Pixel que já é céu ou pôr do sol muda de cor dentro do quadro que o servidor desenhou.
+Quando a vizinhança a 160 pixels está clara, entra a calma do dia. Quality abre em 0,22 e Performance em 0,14. A vivacidade cai, o extra de verde sai, e verde, amarelo e azul perdem um pouco de cor. Branco alto desce um fio, sem virar cinza. Pele fica quase de fora. Cena escura deixa essa conta em zero, então a noite não muda.
 
 ## Postes
 

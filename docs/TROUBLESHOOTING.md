@@ -42,7 +42,7 @@ Janela plana e parede contínua ficam de fora. Um letreiro amarelo pequeno pode 
 
 ## As cores ficaram fortes demais
 
-Baixe Vivacidade no overlay. Quality abre em 0,14 e Performance em 0,08. Verde, céu e laranja já nascem com freio. Zero deixa só a LUT.
+De dia, baixe Calma do dia no overlay. Quality abre em 0,22 e Performance em 0,14. Zero devolve a saturação da cena clara. À noite esse slider não age. Vivacidade, 0,14 e 0,08, continua valendo na cena escura.
 
 ## A noite continua leitosa, ou ficou escura demais
 

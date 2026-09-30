@@ -29,7 +29,7 @@ EDITIONS = {
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
-            "FGM_Lut.fx": {"ColorVibrance": "0.140", "PlantExtra": "0.040"},
+            "FGM_Lut.fx": {"ColorVibrance": "0.140", "PlantExtra": "0.040", "DayCalm": "0.220"},
             "FGM_ClearView.fx": {"ClearLevel": "3"},
             "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=8", "LampLevel": "3"},
             "FGM_Bloom.fx": {"BloomThreshold": "0.880", "BloomAmount": "0.100"},
@@ -59,7 +59,7 @@ EDITIONS = {
             "FGM_Vignette@FGM_Vignette.fx",
         ],
         "uniforms": {
-            "FGM_Lut.fx": {"ColorVibrance": "0.080", "PlantExtra": "0.000"},
+            "FGM_Lut.fx": {"ColorVibrance": "0.080", "PlantExtra": "0.000", "DayCalm": "0.140"},
             "FGM_ClearView.fx": {"ClearLevel": "2"},
             "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=4", "LampLevel": "2"},
             "FGM_Sharp.fx": {"SharpStrength": "0.140"},
@@ -144,8 +144,50 @@ def shoulder(channel: float) -> float:
     return min(1.0, max(0.0, rolled))
 
 
-def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float) -> tuple[float, float, float]:
-    # A mesma conta de FGM_Vibrant em FGM_Lut.fx.
+def skin_mask(rgb: tuple[float, float, float], tone: float, sat: float) -> float:
+    red, green, blue = rgb
+    rg = red - green
+    gb = green - blue
+    skin = smoothstep(0.04, 0.12, rg) * (1.0 - smoothstep(0.18, 0.32, rg))
+    skin *= smoothstep(0.03, 0.10, gb)
+    skin *= smoothstep(0.20, 0.40, tone) * (1.0 - smoothstep(0.62, 0.82, tone))
+    skin *= smoothstep(0.10, 0.22, sat) * (1.0 - smoothstep(0.45, 0.65, sat))
+    return min(1.0, max(0.0, skin))
+
+
+def day_calm(rgb: tuple[float, float, float], day: float, calm: float) -> tuple[float, float, float]:
+    # A mesma conta de FGM_DayCalm. Em cena escura, day fica em zero.
+    if day <= 0.001 or calm <= 0.001:
+        return rgb
+    red, green, blue = rgb
+    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    peak = max(red, green, blue)
+    floorc = min(red, green, blue)
+    sat = (peak - floorc) / max(peak, 0.001)
+    open_mid = smoothstep(0.16, 0.34, tone) * (1.0 - smoothstep(0.90, 0.98, tone))
+    green_w = min(1.0, max(0.0, (green - max(red, blue)) / 0.08))
+    warm = min(1.0, max(0.0, (min(red, green) - blue - 0.02) / 0.10))
+    sky = min(1.0, max(0.0, (blue - max(red, green)) / 0.06))
+    pull = calm * day * open_mid * (0.70 + green_w + 0.55 * warm + 0.35 * sky)
+    pull *= 1.0 - 0.65 * skin_mask(rgb, tone, sat)
+    pull = min(0.32, max(0.0, pull))
+    calmed = [channel * (1.0 - pull) + tone * pull for channel in rgb]
+    hot = smoothstep(0.86, 0.98, tone) * day
+    calmed = [channel * (1.0 - hot) + (channel * 0.97 + 0.01) * hot for channel in calmed]
+    return tuple(min(1.0, max(0.0, channel)) for channel in calmed)
+
+
+def vibrance(
+    rgb: tuple[float, float, float],
+    amount: float,
+    plant_extra: float,
+    day: float = 0.0,
+    calm: float = 0.0,
+) -> tuple[float, float, float]:
+    # A mesma conta de FGM_Vibrant e FGM_DayCalm em FGM_Lut.fx.
+    day = min(1.0, max(0.0, day))
+    amount *= 1.0 - 0.75 * day
+    plant_extra *= 1.0 - day
     red, green, blue = rgb
     tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
     peak = max(red, green, blue)
@@ -154,13 +196,7 @@ def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float)
     shadow = smoothstep(0.08, 0.22, tone)
     not_white = 1.0 - smoothstep(0.72, 0.90, tone)
     headroom = 1.0 - smoothstep(0.28, 0.50, sat)
-    rg = red - green
-    gb = green - blue
-    skin = smoothstep(0.04, 0.12, rg) * (1.0 - smoothstep(0.18, 0.32, rg))
-    skin *= smoothstep(0.03, 0.10, gb)
-    skin *= smoothstep(0.20, 0.40, tone) * (1.0 - smoothstep(0.62, 0.82, tone))
-    skin *= smoothstep(0.10, 0.22, sat) * (1.0 - smoothstep(0.45, 0.65, sat))
-    protect = 1.0 - 0.80 * min(1.0, max(0.0, skin))
+    protect = 1.0 - 0.80 * skin_mask(rgb, tone, sat)
     plant = smoothstep(0.03, 0.14, green - max(red, blue))
     plant *= 1.0 - smoothstep(0.55, 0.80, sat)
     green_dom = min(1.0, max(0.0, (green - max(red, blue)) / 0.12))
@@ -174,7 +210,8 @@ def vibrance(rgb: tuple[float, float, float], amount: float, plant_extra: float)
         head = max(out_peak - tone, 0.001)
         room = max(1.0 - tone, 0.0)
         out = [tone + (channel - tone) * (room / head) for channel in out]
-    return tuple(min(1.0, max(0.0, channel)) for channel in out)
+    out = tuple(min(1.0, max(0.0, channel)) for channel in out)
+    return day_calm(out, day, calm)
 
 
 def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, float, float]:
