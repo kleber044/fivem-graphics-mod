@@ -12,8 +12,8 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 | Postes | White LED no núcleo, 8 amostras | Neutral no núcleo, 4 amostras |
 | Horizonte | nível 3, véu diurno forte | nível 2, a mesma direção |
 | Vivacidade | 0,14 à noite; de dia a calma é 0,22 | 0,08 à noite; de dia a calma é 0,14 |
-| Bloom | só acima de 0,93, quantidade 0,05 | ausente |
-| Nitidez | máscara curta | mais baixa |
+| Bloom | acima de 0,93, quantidade 0,05, sem manchar chão nem folha | ausente |
+| Nitidez | 0,34 no detalhe; pico de luz cai para 0,14 | 0,14 em tudo |
 | Vinheta | leve, centro aberto | mais leve |
 | Gotas na lente | desligadas; ao marcar, duas camadas e distorção | desligadas; ao marcar, uma camada e distorção menor |
 

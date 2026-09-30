@@ -1,4 +1,4 @@
-// Bloom curto e alto limiar. Só estoura o que já é bem claro (farol, poste, sol).
+// Bloom curto e alto limiar. Não pinta chão escuro, folha nem reflexo que já está no topo.
 #include "FGM.fxh"
 
 uniform float BloomThreshold <
@@ -48,7 +48,12 @@ float4 FGM_BloomPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     glow += FGM_BloomSample(uv, float2(0.0, -far.y)) * 0.45;
     weight += 1.8;
     glow /= weight;
-    return float4(saturate(base + glow * BloomAmount), 1.0);
+    float baseLuma = dot(base, float3(0.2126, 0.7152, 0.0722));
+    float glowLuma = dot(glow, float3(0.2126, 0.7152, 0.0722));
+    // Ombro da luz, não o asfalto e não o núcleo que já estourou.
+    float receive = smoothstep(0.70, 0.84, baseLuma) * (1.0 - smoothstep(0.84, 0.94, baseLuma));
+    float presence = smoothstep(0.02, 0.12, glowLuma);
+    return float4(saturate(base + glow * BloomAmount * receive * presence), 1.0);
 }
 
 technique FGM_Bloom
