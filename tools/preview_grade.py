@@ -332,6 +332,32 @@ def saturation(color: tuple[float, float, float]) -> float:
     return (peak - floorc) / max(peak, 0.001)
 
 
+def sharpen(center: tuple[float, float, float], blur: tuple[float, float, float], strength: float) -> tuple[float, float, float]:
+    # A mesma conta de FGM_Sharp.fx. Em 0,14 o ganho não depende do pico.
+    detail = tuple(center[i] - blur[i] for i in range(3))
+    base_gain = min(strength, 0.14)
+    extra = max(strength - 0.14, 0.0)
+    tone = luma(center)
+    detail_luma = luma(tuple(abs(channel) for channel in detail))
+    spike = smoothstep(0.08, 0.18, detail_luma)
+    hot = smoothstep(0.28, 0.48, tone)
+    calm = 1.0 - spike * max(hot, 0.50)
+    gain = base_gain + extra * calm
+    return tuple(min(1.0, max(0.0, center[i] + detail[i] * gain)) for i in range(3))
+
+
+def bloom_apply(
+    base: tuple[float, float, float],
+    glow: tuple[float, float, float],
+    amount: float,
+) -> tuple[float, float, float]:
+    # A mesma deposição de FGM_Bloom.fx, depois que o brilho já foi medido.
+    receive = smoothstep(0.70, 0.84, luma(base)) * (1.0 - smoothstep(0.84, 0.94, luma(base)))
+    presence = smoothstep(0.02, 0.12, luma(glow))
+    scale = amount * receive * presence
+    return tuple(min(1.0, max(0.0, base[i] + glow[i] * scale)) for i in range(3))
+
+
 def scene_day(raw: bytearray, width: int, height: int, x: int, y: int) -> float:
     # A mesma sonda de FGM_SceneLuma: quatro amostras a 160 px no quadro original.
     total = 0.0
@@ -553,6 +579,33 @@ def main() -> None:
     car = pixel(day_done, width, *MARK["car"])
     if max(car) > 0.92:
         raise SystemExit(f"carro estourou vermelho {tuple(round(c, 3) for c in car)}")
+    ground = ((0.86, 0.78, 0.42), (0.22, 0.20, 0.16))
+    leaves = ((0.58, 0.52, 0.18), (0.16, 0.22, 0.10))
+    mild = ((0.46, 0.44, 0.42), (0.42, 0.41, 0.40))
+    for name, spot, blur in (("chão", ground[0], ground[1]), ("árvore", leaves[0], leaves[1])):
+        stable = sharpen(spot, blur, 0.14)
+        quality = sharpen(spot, blur, 0.34)
+        if max_delta(stable, quality) > 0.004:
+            raise SystemExit(f"nitidez do Quality estourou {name} {tuple(round(c, 3) for c in quality)}")
+        if max(quality) > 0.98:
+            raise SystemExit(f"{name} grudou no branco {tuple(round(c, 3) for c in quality)}")
+    plain = sharpen(mild[0], mild[1], 0.34)
+    plain_stable = sharpen(mild[0], mild[1], 0.14)
+    if max_delta(plain, mild[0]) <= max_delta(plain_stable, mild[0]) + 0.004:
+        raise SystemExit("Quality deveria continuar mais nítido fora do pico de luz")
+    legacy = tuple(min(1.0, max(0.0, ground[0][i] + (ground[0][i] - ground[1][i]) * 0.14)) for i in range(3))
+    if max_delta(sharpen(ground[0], ground[1], 0.14), legacy) > 0.0001:
+        raise SystemExit("nitidez 0,14 mudou o caminho do Performance")
+    asphalt = (0.16, 0.15, 0.13)
+    tree = (0.20, 0.28, 0.12)
+    lamp_glow = (1.0, 0.92, 0.55)
+    for name, surface in (("chão", asphalt), ("árvore", tree)):
+        lit = bloom_apply(surface, lamp_glow, 0.05)
+        if max_delta(lit, surface) > 0.001:
+            raise SystemExit(f"bloom do Quality manchou {name} {tuple(round(c, 3) for c in lit)}")
+    core = (0.97, 0.96, 0.94)
+    if max_delta(bloom_apply(core, lamp_glow, 0.05), core) > 0.001:
+        raise SystemExit("bloom do Quality empurrou o reflexo que já estava no topo")
     print(
         f"previews ok desligado={off_hits} noite_gotas={night_hits} dia_gotas={day_hits} "
         f"fraca={light_hits} borda={border} centro={center} "

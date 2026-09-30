@@ -11,7 +11,7 @@ python3 tools/install_test.py
 python3 tools/uninstall_test.py
 ```
 
-`validate_dist.py` confere manifesto, SHA-256, LUT PNG, shaders, ausência de bloom na Performance, `FGM_Lamps` depois do bloom na Quality, White LED com 8 amostras na Quality e Neutral com 4 na Performance, `FGM_ClearView` no nível 3 e 2, vivacidade 0,14 e 0,08, calma do dia 0,22 e 0,14, bloom da Quality em limiar 0,93 e quantidade 0,05, `FGM_Rain` fora de `Techniques=` e presente só em `TechniqueSorting=`, e ausência de `fxmanifest.lua`, `server.cfg`, `client/`, `server/`, DLL e EXE dentro de `dist/` e `release/`.
+`validate_dist.py` confere manifesto, SHA-256, LUT PNG, shaders, ausência de bloom na Performance, `FGM_Lamps` depois do bloom na Quality, White LED com 8 amostras na Quality e Neutral com 4 na Performance, `FGM_ClearView` no nível 3 e 2, vivacidade 0,14 e 0,08, calma do dia 0,22 e 0,14, bloom da Quality em limiar 0,93 e quantidade 0,05, `FGM_Rain` fora de `Techniques=` e presente só em `TechniqueSorting=`, e ausência de `fxmanifest.lua`, `server.cfg`, `client/`, `server/`, DLL e EXE dentro de `dist/` e `release/`. A prévia também confere que a nitidez 0,14 permanece a conta antiga, que o pico de luz no chão e na folha não passa disso na Quality, e que o bloom 0,05 não altera asfalto escuro, folha nem reflexo já estourado.
 
 `install_test.py` e `uninstall_test.py` usam uma pasta falsa de FiveM. Cobrem instalação, segunda instalação, Quality para Performance e o inverso, reparo, `dxgi.dll` de outro programa, FiveM ausente, pasta sem marcador, hash adulterado, ReShade compatível reutilizado, `d3d11.dll` já existente, ReShade antigo substituído, arquivo protegido, extração do setup oficial e restauração byte a byte.
 

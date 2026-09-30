@@ -40,6 +40,10 @@ Quality deve estar no nível 3, White LED, e `FGM_Lamps` precisa estar marcada. 
 
 Janela plana e parede contínua ficam de fora. Um letreiro amarelo pequeno pode clarear, porque tem o mesmo desenho de um ponto de luz. Baixe o slider Postes para Neutral ou Soft, ou desmarque `FGM_Lamps`.
 
+## O chão ou a árvore estoura debaixo da luz
+
+Isso aparecia na Quality quando o reflexo noturno ficava forte. O bloom não soma mais luz no asfalto escuro nem na folha, e não empurra um reflexo que já está claro. A nitidez extra da Quality também sai nesse pico e fica no mesmo ganho do Performance, 0,14. Poste branco, detalhe de parede e placa continuam com o ganho 0,34. Performance não usa bloom e a nitidez dela não muda.
+
 ## O personagem mudou de cor
 
 Pele e roupa com cor são devolvidas ao quadro original no fim da LUT. Não há slider separado. Grama e céu continuam na calma do dia. Se a camisa branca parecer um pouco mais baixa, é a joelha que impede o estouro: o tom não vira cinza.

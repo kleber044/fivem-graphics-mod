@@ -105,8 +105,8 @@
       "source": "reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
       "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
       "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
-      "sha256": "1a614ed87518c6bdf862b89095e898ed7fed8617276ecc065b0af827b8197ac2",
-      "bytes": 1016,
+      "sha256": "4058126871f5b0490def310c0a3544712fddab44862bcdd8b85c7a9c503361ab",
+      "bytes": 1526,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"
