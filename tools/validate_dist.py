@@ -117,6 +117,8 @@ def main() -> None:
                 fail("quality precisa de White LED com 8 amostras")
             if "ClearLevel=3" not in preset_text or "ColorVibrance=0.140" not in preset_text:
                 fail("quality precisa de horizonte 3 e vivacidade 0.140")
+            if "DayCalm=0.220" not in preset_text:
+                fail("quality precisa da calma do dia em 0.220")
             if "BloomThreshold=0.880" not in preset_text or "BloomAmount=0.100" not in preset_text:
                 fail("quality precisa segurar o bloom das superfícies claras")
             if enabled.index("FGM_Lamps@FGM_Lamps.fx") < enabled.index("FGM_Bloom@FGM_Bloom.fx"):
@@ -128,6 +130,8 @@ def main() -> None:
                 fail("performance precisa de Neutral com 4 amostras")
             if "ClearLevel=2" not in preset_text or "ColorVibrance=0.080" not in preset_text:
                 fail("performance precisa de horizonte 2 e vivacidade 0.080")
+            if "DayCalm=0.140" not in preset_text:
+                fail("performance precisa da calma do dia em 0.140")
             if "FGM_Bloom" in preset_text:
                 fail("performance não pode ativar o bloom pesado")
         if edition == "quality" and "FGM_Bloom@FGM_Bloom.fx" not in preset_text:

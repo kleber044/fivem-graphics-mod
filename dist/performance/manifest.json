@@ -45,8 +45,8 @@
       "source": "FGM-Performance.ini",
       "destination_dir": "{fivem_plugins}",
       "destination": "{fivem_plugins}/FGM-Performance.ini",
-      "sha256": "ed865ac2010cfa9f149c74778a2498d7f26bcf12ff47864dc6c280f0e0e9bbae",
-      "bytes": 588,
+      "sha256": "ffffa11f8d7f91c3a071bfad2b4ce80d872f5cbd4f3f84d8f421d85bace475b2",
+      "bytes": 602,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"
@@ -85,8 +85,8 @@
       "source": "reshade-shaders/Shaders/FGM/FGM_Lut.fx",
       "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
       "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
-      "sha256": "b617e74d0e2a4d4052001cf93e899504bd6b457a2e25c47a63fa875e7c645b5a",
-      "bytes": 3401,
+      "sha256": "9d4fa7522617581b1ce918b71b8dbbf9de66b3e80da89798d3bcdc1d7c117fe1",
+      "bytes": 5400,
       "backup_if_exists": true,
       "install_action": "backup_then_replace",
       "restore_on_uninstall": "restore_backup_or_delete"
