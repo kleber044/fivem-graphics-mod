@@ -23,15 +23,15 @@ Céu, sol, poça, cone de farol e sombra do mundo continuam os que o servidor de
 
 ## Postes
 
-Núcleo, halo, ponto distante e reflexo amarelo no asfalto vão para branco levemente frio na Quality. Na Performance o caminho é o mesmo, com um resto menor de calor. A luminância não sobe, então o bloom não ganha energia.
+Núcleo, halo, ponto distante, rastro e reflexo amarelo no asfalto vão para branco neutro. Quality e Performance seguem o mesmo caminho. A luminância não sobe, então o bloom não ganha energia.
 
-O ReShade só vê cor e vizinhança. Entra amarelo ou laranja de saturação média quando há escuridão a até 110 pixels. Ficam como estão farol quase branco, neon, semáforo, freio, janela clara e plana, céu de dia e pôr do sol. Um farol amarelo pode clarear junto com o poste.
+O ReShade só vê cor e vizinhança. Entra o amarelo que se destaca da superfície ao redor: poste, fio de luz, halo e poça clara no chão. Ficam como estão parede, fachada, rua fora dessa poça, janela plana, farol quase branco, neon, semáforo, freio e pôr do sol. Um farol amarelo pode clarear junto com o poste.
 
 No overlay, `FGM_Lamps` tem o slider Postes: 1 Soft, 2 Neutral, 3 White LED. Desmarcar a técnica desliga. Performance usa menos amostras.
 
 ## Horizonte e cor
 
-`FGM_ClearView` baixa o véu claro do horizonte e o leite da noite na faixa escura e média. O leite noturno também perde o tom quente. A névoa de clima fechado continua presente, só menos leitosa. Nível 0 desliga.
+`FGM_ClearView` baixa o véu claro do horizonte e o leite quase cinza da noite. Superfície com cor não entra nessa conta. A névoa de clima fechado continua presente, só menos leitosa. Nível 0 desliga.
 
 A vivacidade não é um saturado global. Meios-tons apagados sobem pouco. Verde, azul de céu e laranja já forte sobem menos ainda. Pele, branco neutro, sombra, carro e placa que já têm cor quase ficam como o jogo desenhou. O slider Vivacidade calibra isso. Quality é o preset principal, num ponto moderado. Performance repete o caminho com número menor. A joelha da LUT segura camisa, nuvem e calçada clara sem pintá-las de cinza.
 
