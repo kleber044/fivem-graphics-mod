@@ -14,7 +14,7 @@ Performance, ativas: `FGM_Lut`, `FGM_ClearView`, `FGM_Lamps`, `FGM_Sharp`, `FGM_
 
 `FGM_Rain` está nas duas edições, mas fora de `Techniques=`. O preset só a lista em `TechniqueSorting=`, desmarcada. Enquanto estiver desmarcada, o passo não roda: menu, clima limpo e noite seca ficam sem gotas.
 
-A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o véu do horizonte e o leite da noite antes do bloom, para esse véu não ser espalhado. O bloom da Quality só entra acima do limiar 0,88, com quantidade 0,10, para camisa, nuvem e calçada não ganharem halo. `FGM_Lamps` entra depois do bloom e troca o amarelo da luz por branco neutro: núcleo, halo, ponto distante, rastro e reflexo claro. A superfície ao redor conserva a cor. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último.
+A LUT vem primeiro e já aplica a vivacidade seletiva. No fim desse passo, pele e roupa com cor voltam ao quadro original. `FGM_ClearView` reduz o véu do horizonte e o leite da noite antes do bloom, para esse véu não ser espalhado. O bloom da Quality só entra acima do limiar 0,93, com quantidade 0,05, para camisa, nuvem e calçada não ganharem halo e o véu distante não ser espalhado. `FGM_Lamps` entra depois do bloom e troca o amarelo da luz por branco neutro: núcleo, halo, ponto distante, rastro e reflexo claro. A superfície ao redor conserva a cor. A nitidez vem depois. A vinheta não fecha o centro. Se o jogador marcar `FGM_Rain`, ela entra por último.
 
 ## LUT
 
@@ -22,7 +22,9 @@ A LUT vem primeiro e já aplica a vivacidade seletiva. `FGM_ClearView` reduz o v
 
 A vivacidade fica no shader `FGM_Lut.fx`. Quality abre em 0,14 e Performance em 0,08. Verde, azul de céu e laranja forte recebem só uma fração desse ganho. Sombra, branco, pele e cor que já está viva quase não mexem. O extra de vegetação é 0,04 na Quality e zero na Performance. Esses números valem na cena escura.
 
-Quando a vizinhança a 160 pixels está clara, entra a calma do dia. Quality abre em 0,22 e Performance em 0,14. A vivacidade cai, o extra de verde sai, e verde, amarelo e azul perdem um pouco de cor. Branco alto desce um fio, sem virar cinza. Pele fica quase de fora. Cena escura deixa essa conta em zero, então a noite não muda.
+Quando a vizinhança a 160 pixels está clara, entra a calma do dia. Quality abre em 0,22 e Performance em 0,14. A vivacidade cai, o extra de verde sai, e verde, amarelo e azul perdem um pouco de cor. Branco alto desce um fio, sem virar cinza. Cena escura deixa essa conta em zero, então a noite não muda.
+
+Depois da grade, `FGM_KeepPerson` devolve a cor original da pele e da roupa que já tem saturação. Grama e céu azul claro não entram nessa devolução, para o dia não voltar saturado. O poste amarelo também volta um instante à cor do jogo e o passo seguinte continua trocando essa luz por branco neutro.
 
 ## Postes
 
@@ -34,7 +36,7 @@ Parede, fachada, rua sem o reflexo da lâmpada e janela plana conservam a cor, p
 
 ## Horizonte
 
-`FGM_ClearView.fx` trata duas faixas, sem profundidade e sem kernel. O horizonte claro e pouco saturado usa força 0,20 na Quality e 0,13 na Performance. O leite da noite só entra quando a saturação está abaixo de cerca de 0,10, entre 0,12 e 0,46 de luminância, com força 0,14 e 0,09. Cor de parede, rua, planta e reflexo não é puxada para o cinza. Sombra escura e luz estourada ficam de fora. O slider Horizonte vai de 0 a 3. O manifesto marca `effects.clear_view` como `local-approximation`.
+`FGM_ClearView.fx` trata duas faixas, sem profundidade e sem kernel. O horizonte de dia, claro e quase sem cor, usa força 0,50 na Quality e 0,34 na Performance, entre cerca de 0,30 e 0,90 de luminância. O véu de dia não passa de 0,52 da luminância do pixel, para o prédio distante clarear sem virar buraco. Cor com saturação acima de cerca de 0,16 fica de fora: pele, roupa, planta e céu saturado não são empurrados. O leite da noite só entra quando a saturação está abaixo de cerca de 0,10, entre 0,12 e 0,46 de luminância, com força 0,14 e 0,09. Sombra escura e branco de camisa ficam de fora. O slider Horizonte vai de 0 a 3. O manifesto marca `effects.clear_view` como `local-approximation`.
 
 ## Chuva e sangue
 

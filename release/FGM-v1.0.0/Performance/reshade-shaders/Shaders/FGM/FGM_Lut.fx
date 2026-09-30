@@ -1,5 +1,6 @@
 // Grade cinematográfica. A LUT faz contraste e split. A vivacidade é seletiva.
 // Em cena clara, a calma do dia reduz verde, amarelo e azul. Cena escura não entra nessa conta.
+// Pele e roupa com cor voltam ao quadro original. Grama e céu continuam na calma do dia.
 #include "FGM.fxh"
 
 uniform float ColorVibrance <
@@ -103,6 +104,30 @@ float3 FGM_DayCalm(float3 color, float day)
     return saturate(calmed);
 }
 
+float3 FGM_KeepPerson(float3 original, float3 graded)
+{
+    float luma = dot(original, float3(0.2126, 0.7152, 0.0722));
+    float peak = max(original.r, max(original.g, original.b));
+    float floorc = min(original.r, min(original.g, original.b));
+    float sat = (peak - floorc) / max(peak, 0.001);
+    float foliage = smoothstep(0.02, 0.08, original.g - max(original.r, original.b));
+    float skyish = smoothstep(0.04, 0.12, original.b - max(original.r, original.g));
+    skyish *= smoothstep(0.35, 0.52, luma);
+    skyish *= 1.0 - smoothstep(0.58, 0.78, sat);
+    float rg = original.r - original.g;
+    float gb = original.g - original.b;
+    float skin = FGM_Skin(original, luma, sat);
+    float broad = smoothstep(0.015, 0.06, rg) * (1.0 - smoothstep(0.28, 0.48, rg));
+    broad *= smoothstep(0.008, 0.045, gb);
+    broad *= smoothstep(0.08, 0.20, luma) * (1.0 - smoothstep(0.86, 0.97, luma));
+    broad *= smoothstep(0.05, 0.14, sat) * (1.0 - smoothstep(0.62, 0.82, sat));
+    broad *= 1.0 - foliage;
+    skin = max(skin, broad);
+    float garment = smoothstep(0.10, 0.20, sat) * (1.0 - foliage) * (1.0 - skyish);
+    float keep = saturate(max(skin, garment * 0.92));
+    return lerp(graded, original, keep);
+}
+
 texture2D FGM_LutTex < source = "fgm_performance_lut.png"; >
 {
     Width = 1024;
@@ -140,7 +165,8 @@ float4 FGM_LutPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
 {
     float3 color = tex2D(ReShade::BackBuffer, uv).rgb;
     float day = smoothstep(0.26, 0.46, FGM_SceneLuma(uv));
-    return float4(FGM_DayCalm(FGM_Vibrant(FGM_SampleLut(color), day), day), 1.0);
+    float3 graded = FGM_DayCalm(FGM_Vibrant(FGM_SampleLut(color), day), day);
+    return float4(FGM_KeepPerson(color, graded), 1.0);
 }
 
 technique FGM_Lut

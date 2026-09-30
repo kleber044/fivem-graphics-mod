@@ -40,13 +40,17 @@ Quality deve estar no nível 3, White LED, e `FGM_Lamps` precisa estar marcada. 
 
 Janela plana e parede contínua ficam de fora. Um letreiro amarelo pequeno pode clarear, porque tem o mesmo desenho de um ponto de luz. Baixe o slider Postes para Neutral ou Soft, ou desmarque `FGM_Lamps`.
 
+## O personagem mudou de cor
+
+Pele e roupa com cor são devolvidas ao quadro original no fim da LUT. Não há slider separado. Grama e céu continuam na calma do dia. Se a camisa branca parecer um pouco mais baixa, é a joelha que impede o estouro: o tom não vira cinza.
+
 ## As cores ficaram fortes demais
 
 De dia, baixe Calma do dia no overlay. Quality abre em 0,22 e Performance em 0,14. Zero devolve a saturação da cena clara. À noite esse slider não age. Vivacidade, 0,14 e 0,08, continua valendo na cena escura.
 
 ## A noite continua leitosa, ou ficou escura demais
 
-O slider Horizonte da `FGM_ClearView` vai de 0 a 3. Quality abre em 3 e Performance em 2. Só o leite quase sem cor, entre 0,12 e 0,46 de luminância, recua. Parede, rua e planta não são empurradas para o cinza. Zero devolve o véu original. O efeito não enxerga distância.
+O slider Horizonte da `FGM_ClearView` vai de 0 a 3. Quality abre em 3 e Performance em 2. De dia o cinza claro do horizonte recua com força, sem passar de metade da luminância do pixel. À noite só o leite quase sem cor, entre 0,12 e 0,46, recua. Pele, roupa, planta e céu com cor não entram. Zero devolve o véu original. O efeito não enxerga distância: um cinza claro sem cor, mesmo perto da câmera, perde o mesmo véu.
 
 ## As duas edições parecem misturadas
 

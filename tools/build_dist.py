@@ -32,7 +32,7 @@ EDITIONS = {
             "FGM_Lut.fx": {"ColorVibrance": "0.140", "PlantExtra": "0.040", "DayCalm": "0.220"},
             "FGM_ClearView.fx": {"ClearLevel": "3"},
             "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=8", "LampLevel": "3"},
-            "FGM_Bloom.fx": {"BloomThreshold": "0.880", "BloomAmount": "0.100"},
+            "FGM_Bloom.fx": {"BloomThreshold": "0.930", "BloomAmount": "0.050"},
             "FGM_Sharp.fx": {"SharpStrength": "0.340"},
             "FGM_Vignette.fx": {"VignetteAmount": "0.160"},
             "FGM_Rain.fx": {"RainStrength": "0.720", "RainLayers": "2", "RainDistort": "1.000"},
@@ -214,10 +214,35 @@ def vibrance(
     return day_calm(out, day, calm)
 
 
+def keep_person(original: tuple[float, float, float], graded: tuple[float, float, float]) -> tuple[float, float, float]:
+    # A mesma conta de FGM_KeepPerson. Pele e roupa voltam ao quadro. Grama e céu não.
+    red, green, blue = original
+    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    peak = max(red, green, blue)
+    floorc = min(red, green, blue)
+    sat = (peak - floorc) / max(peak, 0.001)
+    foliage = smoothstep(0.02, 0.08, green - max(red, blue))
+    skyish = smoothstep(0.04, 0.12, blue - max(red, green))
+    skyish *= smoothstep(0.35, 0.52, tone)
+    skyish *= 1.0 - smoothstep(0.58, 0.78, sat)
+    rg = red - green
+    gb = green - blue
+    skin = skin_mask(original, tone, sat)
+    broad = smoothstep(0.015, 0.06, rg) * (1.0 - smoothstep(0.28, 0.48, rg))
+    broad *= smoothstep(0.008, 0.045, gb)
+    broad *= smoothstep(0.08, 0.20, tone) * (1.0 - smoothstep(0.86, 0.97, tone))
+    broad *= smoothstep(0.05, 0.14, sat) * (1.0 - smoothstep(0.62, 0.82, sat))
+    broad *= 1.0 - foliage
+    skin = max(skin, broad)
+    garment = smoothstep(0.10, 0.20, sat) * (1.0 - foliage) * (1.0 - skyish)
+    keep = min(1.0, max(0.0, max(skin, garment * 0.92)))
+    return tuple(graded[i] * (1.0 - keep) + original[i] * keep for i in range(3))
+
+
 def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, float, float]:
     # A mesma conta de FGM_ClearView.fx. Sem amostra extra.
     level = max(0, min(3, int(level)))
-    day = (0.0, 0.07, 0.13, 0.20)[level]
+    day = (0.0, 0.16, 0.34, 0.50)[level]
     night = (0.0, 0.05, 0.09, 0.14)[level]
     if day <= 0.0 and night <= 0.0:
         return rgb
@@ -226,11 +251,13 @@ def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, flo
     peak = max(red, green, blue)
     floorc = min(red, green, blue)
     sat = (peak - floorc) / max(peak, 0.001)
-    day_gray = 1.0 - smoothstep(0.05, 0.24, sat)
+    day_gray = 1.0 - smoothstep(0.03, 0.16, sat)
     night_gray = 1.0 - smoothstep(0.02, 0.10, sat)
-    day_band = smoothstep(0.40, 0.55, tone) * (1.0 - smoothstep(0.76, 0.88, tone))
+    day_band = smoothstep(0.30, 0.44, tone) * (1.0 - smoothstep(0.78, 0.90, tone))
     night_band = smoothstep(0.12, 0.20, tone) * (1.0 - smoothstep(0.32, 0.46, tone))
-    veil = max(day_gray * day_band * day, night_gray * night_band * night)
+    veil_day = min(day_gray * day_band * day, tone * 0.52)
+    veil_night = night_gray * night_band * night
+    veil = max(veil_day, veil_night)
     if veil <= 0.001:
         return rgb
     scale = 1.0 / max(1.0 - veil, 0.001)

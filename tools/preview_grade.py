@@ -7,7 +7,7 @@ import struct
 import zlib
 from pathlib import Path
 
-from build_dist import clear_pixel, grade, smoothstep, vibrance
+from build_dist import clear_pixel, grade, keep_person, smoothstep, vibrance
 
 OUT = Path("/opt/cursor/artifacts")
 SIZE = 32
@@ -60,6 +60,9 @@ MARK = {
     "shirt": (430, 155),
     "walk": (250, 230),
     "shadow": (20, 250),
+    "skin": (430, 250),
+    "jeans": (30, 240),
+    "jacket": (100, 230),
 }
 
 
@@ -135,6 +138,9 @@ def scene(width: int, height: int, night: bool) -> bytearray:
                 if 0.55 < v < 0.72 and 0.55 < u < 0.78:
                     warm = (0.95, 0.55, 0.25)
                     color = [color[i] * 0.35 + warm[i] * 0.65 for i in range(3)]
+                color = paint(color, x, y, 430, 250, 70, (0.72, 0.50, 0.40))
+                color = paint(color, x, y, 30, 240, 8, (0.18, 0.28, 0.55))
+                color = paint(color, x, y, 100, 230, 8, (0.62, 0.16, 0.14))
             index = (y * width + x) * 3
             rgb[index : index + 3] = bytes(int(min(255, max(0, channel * 255))) for channel in color)
     return rgb
@@ -353,8 +359,10 @@ def polish(
         for x in range(width):
             index = (y * width + x) * 3
             src = tuple(channel / 255.0 for channel in graded[index : index + 3])
+            original = tuple(channel / 255.0 for channel in raw[index : index + 3])
             day = scene_day(raw, width, height, x, y)
-            color = clear_pixel(vibrance(src, amount, plant, day, calm), clear)
+            color = keep_person(original, vibrance(src, amount, plant, day, calm))
+            color = clear_pixel(color, clear)
             vivid[index : index + 3] = bytes(int(round(min(1.0, max(0.0, channel)) * 255)) for channel in color)
     return apply_lamps(vivid, width, height, taps, level)
 
@@ -469,9 +477,9 @@ def main() -> None:
     sky_before = luma(pixel(day_q, width, *MARK["haze_sky"]))
     sky_after = luma(pixel(day_done, width, *MARK["haze_sky"]))
     haze_drop = haze_before - haze_after
-    if haze_drop < 0.03:
+    if haze_drop < 0.10:
         raise SystemExit(f"a névoa do prédio distante não recuou ({haze_before:.3f} -> {haze_after:.3f})")
-    if haze_drop > 0.16:
+    if haze_drop > 0.32 or haze_after < 0.22:
         raise SystemExit(f"a limpeza do horizonte ficou dura ({haze_before:.3f} -> {haze_after:.3f})")
     if (sky_before - haze_before) >= (sky_after - haze_after):
         raise SystemExit("o horizonte não ganhou separação")
@@ -521,6 +529,15 @@ def main() -> None:
     skin = vibrance(skin_src, 0.14, 0.04)
     if skin[0] > skin_src[0] + 0.03:
         raise SystemExit(f"pele ficou laranja ({tuple(round(c, 3) for c in skin)})")
+    for sample in ((0.76, 0.56, 0.46), (0.45, 0.30, 0.22), (0.62, 0.16, 0.14), (0.18, 0.28, 0.55)):
+        kept = keep_person(sample, vibrance(grade(sample, "quality"), 0.14, 0.04, 1.0, 0.22))
+        if max_delta(kept, sample) > 0.030:
+            raise SystemExit(f"personagem saiu da cor do jogo {tuple(round(c, 3) for c in sample)} -> {tuple(round(c, 3) for c in kept)}")
+    for name in ("skin", "jeans", "jacket"):
+        raw_color = pixel(day, width, *MARK[name])
+        out_color = pixel(day_done, width, *MARK[name])
+        if max_delta(raw_color, out_color) > 0.030:
+            raise SystemExit(f"{name} saiu da cor do jogo {tuple(round(c, 3) for c in raw_color)} -> {tuple(round(c, 3) for c in out_color)}")
     sky_src = pixel(day_q, width, *MARK["sky"])
     sky_out = pixel(day_done, width, *MARK["sky"])
     if (sky_src[2] - sky_src[0]) - (sky_out[2] - sky_out[0]) < 0.03:
