@@ -7,7 +7,7 @@ uniform float BloomThreshold <
     ui_max = 1.00;
     ui_step = 0.01;
     ui_label = "Limiar do bloom";
-> = 0.78;
+> = 0.93;
 
 uniform float BloomAmount <
     ui_type = "slider";
@@ -15,7 +15,7 @@ uniform float BloomAmount <
     ui_max = 0.50;
     ui_step = 0.01;
     ui_label = "Quantidade do bloom";
-> = 0.16;
+> = 0.05;
 
 float3 FGM_BloomSample(float2 uv, float2 offset)
 {

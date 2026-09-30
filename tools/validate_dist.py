@@ -119,7 +119,7 @@ def main() -> None:
                 fail("quality precisa de horizonte 3 e vivacidade 0.140")
             if "DayCalm=0.220" not in preset_text:
                 fail("quality precisa da calma do dia em 0.220")
-            if "BloomThreshold=0.880" not in preset_text or "BloomAmount=0.100" not in preset_text:
+            if "BloomThreshold=0.930" not in preset_text or "BloomAmount=0.050" not in preset_text:
                 fail("quality precisa segurar o bloom das superfícies claras")
             if enabled.index("FGM_Lamps@FGM_Lamps.fx") < enabled.index("FGM_Bloom@FGM_Bloom.fx"):
                 fail("os postes precisam entrar depois do bloom para o núcleo não voltar amarelo")

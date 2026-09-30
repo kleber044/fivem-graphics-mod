@@ -10,9 +10,9 @@ Ele não tenta atravessar Pure Mode, anticheat ou qualquer bloqueio. Se o servid
 | --- | --- | --- |
 | LUT cinematográfica | contraste e split de céu/pôr do sol mais presentes | a mesma direção, mais curta |
 | Postes | White LED no núcleo, 8 amostras | Neutral no núcleo, 4 amostras |
-| Horizonte | nível 3, força curta | nível 2, ainda mais curto |
+| Horizonte | nível 3, véu diurno forte | nível 2, a mesma direção |
 | Vivacidade | 0,14 à noite; de dia a calma é 0,22 | 0,08 à noite; de dia a calma é 0,14 |
-| Bloom | só acima de 0,88, quantidade 0,10 | ausente |
+| Bloom | só acima de 0,93, quantidade 0,05 | ausente |
 | Nitidez | máscara curta | mais baixa |
 | Vinheta | leve, centro aberto | mais leve |
 | Gotas na lente | desligadas; ao marcar, duas camadas e distorção | desligadas; ao marcar, uma camada e distorção menor |
@@ -31,9 +31,9 @@ No overlay, `FGM_Lamps` tem o slider Postes: 1 Soft, 2 Neutral, 3 White LED. Des
 
 ## Horizonte e cor
 
-`FGM_ClearView` baixa o véu claro do horizonte e o leite quase cinza da noite. Superfície com cor não entra nessa conta. A névoa de clima fechado continua presente, só menos leitosa. Nível 0 desliga.
+`FGM_ClearView` baixa o véu branco do horizonte de dia e o leite quase cinza da noite. Pele, roupa, planta e qualquer superfície com cor ficam de fora. A névoa de clima fechado continua presente, só bem menos leitosa. Nível 0 desliga.
 
-A vivacidade não é um saturado global. Meios-tons apagados sobem pouco. Verde, azul de céu e laranja já forte sobem menos ainda. Pele, branco neutro, sombra, carro e placa que já têm cor quase ficam como o jogo desenhou. O slider Vivacidade calibra a cena escura. O slider Calma do dia só age quando a vizinhança está clara: grama, céu e parede quente perdem saturação, e o branco alto não estoura. A noite, os postes e o leite noturno ficam no caminho anterior. A joelha da LUT segura camisa, nuvem e calçada clara sem pintá-las de cinza.
+A vivacidade não é um saturado global. Meios-tons apagados sobem pouco. Verde, azul de céu e laranja já forte sobem menos ainda. Depois disso, pele e roupa colorida voltam ao tom do quadro original, de dia e de noite. O slider Vivacidade calibra a cena escura. O slider Calma do dia só age quando a vizinhança está clara: grama e céu perdem saturação, e o branco alto não estoura. A noite, os postes e o leite noturno ficam no caminho anterior. A joelha da LUT segura camisa, nuvem e calçada clara sem pintá-las de cinza.
 
 ## Chuva
 
