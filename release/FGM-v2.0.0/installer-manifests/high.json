@@ -1,0 +1,367 @@
+{
+  "schema": 3,
+  "package": "fgm-high",
+  "version": "2.0.0",
+  "edition": "high",
+  "aliases": [],
+  "kind": "client-local",
+  "preset": "FGM-High.ini",
+  "min_reshade": "5.0.0",
+  "preferred_reshade": "6.8.0",
+  "road_texture_px": 512,
+  "tokens": {
+    "fivem_plugins": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\plugins",
+    "fivem_root": "%LOCALAPPDATA%\\FiveM\\FiveM.app",
+    "fivem_plugins_explorer_name": "FiveM Application Data\\plugins"
+  },
+  "effects": {
+    "screen_rain": "manual-toggle",
+    "street_lamps": "local-approximation",
+    "clear_view": "local-approximation",
+    "vibrance": "selective",
+    "damage_blood": "unavailable",
+    "road_detail": "screen-space-original-texture",
+    "world_texture_replacement": "unavailable",
+    "film_grain": "optional-off",
+    "chromatic_aberration": "optional-off",
+    "graphics_settings": "backup-then-replace-existing-keys"
+  },
+  "install_policy": {
+    "default": "backup_if_exists_then_replace",
+    "created_when": "destination absent",
+    "replaced_when": "destination exists",
+    "recorded_in": "{fivem_root}/FGM-state.json",
+    "backup_dir": "{fivem_root}/FGM-Backup/<data-hora>/"
+  },
+  "dependencies": [
+    {
+      "name": "ReShade",
+      "author": "Patrick Mours (crosire)",
+      "version": "6.8.0",
+      "source": "https://reshade.me/downloads/ReShade_Setup_6.8.0.exe",
+      "license": "BSD-3-Clause",
+      "commercial_use": true,
+      "redistribution": "license-allows-but-author-asks-not-to-bundle",
+      "bundled": false,
+      "acquire": "official-download-on-install",
+      "min_version": "5.0.0"
+    }
+  ],
+  "files": [
+    {
+      "source": "FGM-High.ini",
+      "destination_dir": "{fivem_plugins}",
+      "destination": "{fivem_plugins}/FGM-High.ini",
+      "sha256": "14ddcadb37e6b6a86ed0de12c57ad52b24426ccd8898d642181c739f11612a60",
+      "bytes": 2112,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM.fxh",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
+      "sha256": "45a9869f83cd95e206e53c9e91d68d8cea7186d4614b808ffe6c8c2a426977d6",
+      "bytes": 4757,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_AmbientTone.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_AmbientTone.fx",
+      "sha256": "7fd2cba229d89a3c9c4fa6a30078a2a80e2ebec417e1a3507d35ef53f6748b47",
+      "bytes": 1125,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Bloom.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Bloom.fx",
+      "sha256": "8b5f5381ca7939ae07e79dea24b2d6bd1f52f1183e3bf7c3c64302f8000f11e8",
+      "bytes": 2562,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_ChromaticAberration.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ChromaticAberration.fx",
+      "sha256": "15867d92eab6d7d6c2c61b4e3f7fe1a96fd37045d95fcde2f991fa7f963e5e86",
+      "bytes": 1068,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_ClearView.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ClearView.fx",
+      "sha256": "3690140cbae8cf565aefa3522c9ee6a853325fd394ab4c03da0b4e81cbd914a5",
+      "bytes": 1558,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Color.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Color.fx",
+      "sha256": "bc33bc0cc496be4fd22ff74ffefb662eaea4c3579c9861a2268e9c04049ec8ac",
+      "bytes": 2305,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_ColorProtection.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ColorProtection.fx",
+      "sha256": "fb74667c4638e79289f7331a69fc2b56def67633b21e4f4ec6ee61954a9a4234",
+      "bytes": 1282,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Contrast.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Contrast.fx",
+      "sha256": "f8be4d83b2f66d32cec760daac74616915f741cdc0d784bf6bb97ef3976c449b",
+      "bytes": 973,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Day.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Day.fx",
+      "sha256": "42ae0b3c19e25852a276b7b1876639682f4ef0652a29c1e38e5ffa260b6940ed",
+      "bytes": 1472,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Exposure.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Exposure.fx",
+      "sha256": "d889ea0e7bcfac2808adc36b8f24fed380d2fd9331729538868faf18bfc642ac",
+      "bytes": 836,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_FilmGrain.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_FilmGrain.fx",
+      "sha256": "6762aea315e279257a519b6835ea51de5c46f443dd3205d4b58f8f4708042733",
+      "bytes": 1096,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_HighlightRecovery.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_HighlightRecovery.fx",
+      "sha256": "28c60eebe6b6a2ced3c978c448e128a4087bea13f510664430c7f7f5ed6b5fb0",
+      "bytes": 1311,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
+      "sha256": "fab7e4397a5fb917cfb05899a3cda4ca4eb274d94b04e142dc82dcfa5008a082",
+      "bytes": 5740,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+      "sha256": "c2133e7094ba359cd3d7709eb449e9050f20c2b30337a877d97ad172d2712bab",
+      "bytes": 1377,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Night.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Night.fx",
+      "sha256": "11a54cf1ed1b95798b79a1b6513ed3525a194ba80f536d077a0e4c8a12d0bcf8",
+      "bytes": 1266,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+      "sha256": "12c78992d3d3ef02627cc2d5a7e92437a27fc449475d30eda4b32f3b10e49340",
+      "bytes": 3372,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_ReflectionsEnhance.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ReflectionsEnhance.fx",
+      "sha256": "ff66afaccf8df3665553042580abf016113aae56c5c59f5218cd1597042668fb",
+      "bytes": 2243,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Roads.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Roads.fx",
+      "sha256": "e34eaa0d78b22902ff258d481f652fa49f0dab4b2b07af07b2c54cfc0991cdde",
+      "bytes": 1381,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Shadows.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Shadows.fx",
+      "sha256": "ac5f7173b9e72407f457f14e98836801407b6c2752a02f73a607ad05dddbe567",
+      "bytes": 915,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+      "sha256": "87c2067d2079c8d0ddf0409c9553202ab5a3f0d32c4378d682751dd689fff751",
+      "bytes": 1393,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Tonemap.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Tonemap.fx",
+      "sha256": "be07e9a72f28b9356d86d09f583b49dae9b5753007ca8d73dad29596b2dd8bc6",
+      "bytes": 1209,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Shaders/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+      "sha256": "75456197509232f71c52fd3d291d3ddf82067ce428bd240c1bf77a42c911ab52",
+      "bytes": 766,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Textures/FGM/fgm_high_lut.png",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Textures/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_high_lut.png",
+      "sha256": "f304b6be2bfab807a2cccf2809efdbe054e6401e73295fd92385c0829bec94ee",
+      "bytes": 69736,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    },
+    {
+      "source": "reshade-shaders/Textures/FGM/fgm_road.png",
+      "destination_dir": "{fivem_plugins}/reshade-shaders/Textures/FGM",
+      "destination": "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_road.png",
+      "sha256": "52e5052ed22d274e0881cae5f8e10775c3d983dc357f5035175db9321371c8a3",
+      "bytes": 177006,
+      "backup_if_exists": true,
+      "install_action": "backup_then_replace",
+      "restore_on_uninstall": "restore_backup_or_delete"
+    }
+  ],
+  "backup_files": [
+    "{fivem_plugins}/FGM-High.ini",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_AmbientTone.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Bloom.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ChromaticAberration.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ClearView.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Color.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ColorProtection.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Contrast.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Day.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Exposure.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_FilmGrain.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_HighlightRecovery.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Night.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ReflectionsEnhance.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Roads.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Shadows.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Tonemap.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+    "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_high_lut.png",
+    "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_road.png"
+  ],
+  "restore_on_uninstall": [
+    "{fivem_plugins}/FGM-High.ini",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM.fxh",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_AmbientTone.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Bloom.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ChromaticAberration.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ClearView.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Color.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ColorProtection.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Contrast.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Day.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Exposure.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_FilmGrain.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_HighlightRecovery.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lamps.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Lut.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Night.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Rain.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_ReflectionsEnhance.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Roads.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Shadows.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Sharp.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Tonemap.fx",
+    "{fivem_plugins}/reshade-shaders/Shaders/FGM/FGM_Vignette.fx",
+    "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_high_lut.png",
+    "{fivem_plugins}/reshade-shaders/Textures/FGM/fgm_road.png"
+  ],
+  "runtime_managed": [
+    "{fivem_plugins}/dxgi.dll",
+    "{fivem_plugins}/d3d11.dll",
+    "{fivem_plugins}/ReShade.ini"
+  ],
+  "do_not_touch": [
+    "%LOCALAPPDATA%\\FiveM\\FiveM.app\\CitizenFX.ini",
+    "{gta_root}\\update\\update.rpf",
+    "{gta_root}\\GTA5.exe",
+    "{fivem_root}\\FiveM.exe"
+  ]
+}

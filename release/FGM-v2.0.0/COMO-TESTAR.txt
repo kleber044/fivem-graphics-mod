@@ -1,0 +1,7 @@
+FGM 2.0.0 — uma rodada no FiveM
+
+Feche o FiveM antes de instalar. A lista curta de teste está em Docs/TESTES.md.
+Ultra é o visual principal. Quality instala Ultra. Performance instala Low.
+FGM_Rain, grão e aberração cromática começam desligados.
+O ReShade 6.8.0 é baixado de https://reshade.me/ se ainda não houver um compatível.
+O binário não vem neste pacote.

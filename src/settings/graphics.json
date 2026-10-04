@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "file_name": "settings.xml",
+  "search": [
+    "%USERPROFILE%\\Documents\\Rockstar Games\\GTA V\\settings.xml",
+    "%USERPROFILE%\\OneDrive\\Documents\\Rockstar Games\\GTA V\\settings.xml"
+  ],
+  "policy": "Substituir só chaves que já existem dentro de settings.xml, depois de copiar o arquivo inteiro para FGM-Backup. Na desinstalação o arquivo original volta byte a byte. Chave ausente não é criada. Arquivo ausente não é criado.",
+  "value_notes": {
+    "TextureQuality": "0 Normal, 1 High, 2 Very High",
+    "ShaderQuality": "0 Normal, 1 High, 2 Very High",
+    "ShadowQuality": "0 Normal, 1 High, 2 Very High, 3 Ultra",
+    "ReflectionQuality": "0 Normal, 1 High, 2 Very High, 3 máximo da linha de comando",
+    "ParticleQuality": "0 Normal, 1 High, 2 Very High",
+    "GrassQuality": "0 a 5. O FGM não usa o topo para evitar stutter",
+    "PostFX": "0 Normal, 1 High, 2 Very High, 3 Ultra",
+    "AnisotropicFiltering": "0, 2, 4, 8 ou 16",
+    "SSAO": "0 off, 1 normal, 2 high",
+    "WaterQuality": "0 Normal, 1 High, 2 Very High",
+    "Shadow_SoftShadows": "0 a 3. PCSS e CHS não são forçados",
+    "LodScale": "escala de distância, -1 a 1 na prática do arquivo",
+    "Shadow_Distance": "distância da sombra"
+  },
+  "never_touch": [
+    "DX_Version",
+    "MSAA",
+    "MSAAFragments",
+    "MSAAQuality",
+    "TXAA_Enabled",
+    "SamplingMode",
+    "DoF",
+    "MotionBlurStrength",
+    "UltraShadows_Enabled",
+    "FXAA_Enabled",
+    "CityDensity",
+    "PedVarietyMultiplier",
+    "VehicleVarietyMultiplier"
+  ],
+  "profiles": {
+    "ultra": {
+      "apply": {
+        "TextureQuality": "2",
+        "ShaderQuality": "2",
+        "ShadowQuality": "3",
+        "ReflectionQuality": "2",
+        "ParticleQuality": "2",
+        "GrassQuality": "3",
+        "PostFX": "3",
+        "AnisotropicFiltering": "16",
+        "SSAO": "2",
+        "WaterQuality": "2",
+        "Shadow_SoftShadows": "3",
+        "LodScale": "1.000000",
+        "Shadow_Distance": "1.200000"
+      }
+    },
+    "high": {
+      "apply": {
+        "TextureQuality": "2",
+        "ShaderQuality": "2",
+        "ShadowQuality": "2",
+        "ReflectionQuality": "2",
+        "ParticleQuality": "1",
+        "GrassQuality": "2",
+        "PostFX": "2",
+        "AnisotropicFiltering": "16",
+        "SSAO": "2",
+        "WaterQuality": "1",
+        "Shadow_SoftShadows": "2",
+        "LodScale": "0.800000",
+        "Shadow_Distance": "1.000000"
+      }
+    },
+    "medium": {
+      "apply": {
+        "TextureQuality": "1",
+        "ShaderQuality": "1",
+        "ShadowQuality": "1",
+        "ReflectionQuality": "1",
+        "ParticleQuality": "1",
+        "GrassQuality": "1",
+        "PostFX": "1",
+        "AnisotropicFiltering": "8",
+        "SSAO": "1",
+        "WaterQuality": "1",
+        "Shadow_SoftShadows": "1",
+        "LodScale": "0.400000",
+        "Shadow_Distance": "1.000000"
+      }
+    },
+    "low": {
+      "apply": {
+        "TextureQuality": "0",
+        "ShaderQuality": "0",
+        "ShadowQuality": "0",
+        "ReflectionQuality": "0",
+        "ParticleQuality": "0",
+        "GrassQuality": "0",
+        "PostFX": "0",
+        "AnisotropicFiltering": "4",
+        "SSAO": "0",
+        "WaterQuality": "0",
+        "Shadow_SoftShadows": "0",
+        "LodScale": "0.000000",
+        "Shadow_Distance": "1.000000"
+      }
+    }
+  },
+  "recommend_only": {
+    "MSAA": "Não alterar. O antialiasing por MSAA pesa e pode brigar com o FiveM.",
+    "FXAA_Enabled": "Ultra e High ficam melhores com FXAA ligado. A escolha continua do jogador.",
+    "DoF": "Manter desligado. Desfoque atrapalha dirigir e mirar.",
+    "MotionBlurStrength": "Manter em zero.",
+    "UltraShadows_Enabled": "Só em PC forte, e mesmo assim é opção manual: o custo de FPS varia demais.",
+    "TXAA_Enabled": "Não alterar. Depende da placa.",
+    "DX_Version": "Não alterar.",
+    "MaxLodScale": "Ultra pode subir para 0.5 se o disco e a VRAM aguentarem. Não é aplicado porque gera stutter.",
+    "HdStreamingInFlight": "Deixar como o jogador já usa."
+  }
+}

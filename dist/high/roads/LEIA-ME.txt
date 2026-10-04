@@ -1,0 +1,4 @@
+Asfalto FGM high, 512 px.
+Textura original gerada por src/roads/gerar_asfalto.py.
+Não é arquivo da Rockstar e não entra em update.rpf.
+O shader FGM_Roads usa a cópia em reshade-shaders/Textures/FGM/fgm_road.png.

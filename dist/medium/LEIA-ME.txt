@@ -1,0 +1,4 @@
+FGM medium 2.0.0 — mod gráfico local.
+Não copie esta pasta para resources e não edite server.cfg.
+No Windows, use Instalar-Ultra.cmd, Instalar-High.cmd, Instalar-Medium.cmd ou Instalar-Low.cmd.
+Quality instala Ultra. Performance instala Low.

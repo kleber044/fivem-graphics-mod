@@ -1,13 +1,17 @@
-# FGM — mod gráfico local para FiveM
+# FGM 2.0.0 — mod gráfico local para FiveM
 
-Pacote visual para o PC do jogador. A pasta de teste é `release/FGM-v1.0.0`.
+Pacote visual para o PC do jogador. A pasta de teste é `release/FGM-v2.0.0`.
 
-No Windows, feche o FiveM e dê dois cliques em `Instalar-Quality.cmd` ou `Instalar-Performance.cmd`. O script acha o FiveM, baixa o ReShade 6.8.0 em reshade.me se ainda não houver um compatível, copia os shaders desta edição e seleciona o preset. `Desinstalar.cmd` devolve o backup.
+No Windows, feche o FiveM e dê dois cliques em `Instalar-Ultra.cmd`, `Instalar-High.cmd`, `Instalar-Medium.cmd` ou `Instalar-Low.cmd`. O script acha o FiveM, baixa o ReShade 6.8.0 em reshade.me se ainda não houver um compatível, copia só os arquivos daquele perfil e seleciona o preset. Se existir `settings.xml` do GTA em Documentos, ele é copiado para o backup e as chaves gráficas que já estão lá recebem o valor do perfil. `Desinstalar.cmd` devolve o backup dos shaders e o `settings.xml` original.
 
-Não há resource de servidor. Quality e Performance não ficam ativas ao mesmo tempo.
+Não há resource de servidor. Um perfil substitui o outro.
 
-Quality é o visual principal: pele e roupa ficam na cor do jogo, a grama e o céu do dia perdem o excesso de saturação, e o véu branco do horizonte desce forte. À noite o poste, o halo, a luz distante, o rastro e o reflexo no asfalto continuam em branco neutro, com menos leite cinza. Performance segue a mesma direção, com calma do dia mais leve, Neutral e menos vivacidade. Brancos claros continuam brancos, sem estourar. Farol branco, neon, semáforo e janela plana não viram branco, e a chuva na lente continua desligada.
+`Instalar-Quality.cmd` instala Ultra. `Instalar-Performance.cmd` instala Low.
 
-`FGM_Rain` começa desligado. O ReShade local não detecta o clima do servidor nem o menu do FiveM, então não há gotas até o jogador marcar a técnica quando a chuva do jogo está na tela. Desmarcar some com elas. Sangue ao tomar dano não faz parte do pacote: um shader não vê a vida do personagem, e leitura de memória não entra neste produto.
+Ultra é o visual principal: pele e roupa ficam na cor do jogo, o dia perde o excesso de saturação, o véu branco do horizonte desce, e à noite o poste, o halo, a luz distante, o rastro e o reflexo claro no asfalto ficam em branco neutro. High chega perto, com menos bloom e menos amostras. Medium equilibra. Low guarda a mesma direção com o mínimo de passos e sem bloom.
+
+`FGM_Rain`, o grão e a aberração cromática começam desligados. O ReShade local não vê o clima do servidor nem o menu do FiveM. Sangue ao tomar dano não faz parte do pacote.
+
+O asfalto é uma textura original deste repositório, usada só como detalhe em espaço de tela. O FGM não edita `update.rpf`.
 
 O detalhe está em `docs/`.
