@@ -8,7 +8,7 @@ uniform float ExposureBias <
     ui_max = 0.10;
     ui_step = 0.005;
     ui_label = "Exposição";
-> = 0.012;
+> = 0.000;
 
 float4 FGM_ExposurePS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
 {

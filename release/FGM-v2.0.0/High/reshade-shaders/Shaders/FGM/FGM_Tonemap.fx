@@ -8,7 +8,7 @@ uniform float TonemapAmount <
     ui_max = 1.00;
     ui_step = 0.01;
     ui_label = "Joelha do branco";
-> = 0.40;
+> = 0.12;
 
 float FGM_Shoulder(float channel)
 {

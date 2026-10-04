@@ -53,26 +53,26 @@ def mix(a: tuple[float, float, float], b: tuple[float, float, float], t: float) 
 
 # Contraste da LUT, abertura de sombra, céu e pôr do sol. A tinta de sombra ficou no AmbientTone.
 GRADE = {
-    "ultra": {"contrast": 1.050, "shadow_scale": 0.035, "sky_push": 0.008, "sun_push": 0.010},
-    "high": {"contrast": 1.040, "shadow_scale": 0.030, "sky_push": 0.007, "sun_push": 0.008},
-    "medium": {"contrast": 1.030, "shadow_scale": 0.022, "sky_push": 0.005, "sun_push": 0.006},
-    "low": {"contrast": 1.025, "shadow_scale": 0.016, "sky_push": 0.004, "sun_push": 0.004},
+    "ultra": {"contrast": 1.040, "shadow_scale": 0.018, "sky_push": 0.004, "sun_push": 0.010},
+    "high": {"contrast": 1.032, "shadow_scale": 0.016, "sky_push": 0.003, "sun_push": 0.008},
+    "medium": {"contrast": 1.024, "shadow_scale": 0.012, "sky_push": 0.002, "sun_push": 0.006},
+    "low": {"contrast": 1.018, "shadow_scale": 0.008, "sky_push": 0.002, "sun_push": 0.004},
 }
 
 # Força de cada técnica. Zero significa que o preset não liga o passo.
 LOOK = {
     "ultra": {
-        "exposure": 0.012,
+        "exposure": 0.000,
         "shadows": 0.045,
         "vibrance": 0.120,
         "plant": 0.030,
-        "day_calm": 0.240,
+        "day_calm": 0.100,
         "night": 0.080,
-        "ambient": 0.035,
-        "contrast": 0.040,
-        "tonemap": 0.400,
-        "highlight": 0.450,
-        "clear_day": 0.500,
+        "ambient": 0.000,
+        "contrast": 0.050,
+        "tonemap": 0.120,
+        "highlight": 0.220,
+        "clear_day": 0.180,
         "clear_night": 0.120,
         "bloom_threshold": 0.940,
         "bloom_amount": 0.040,
@@ -92,17 +92,17 @@ LOOK = {
         "aberration": 0.000,
     },
     "high": {
-        "exposure": 0.008,
+        "exposure": 0.000,
         "shadows": 0.035,
         "vibrance": 0.100,
         "plant": 0.020,
-        "day_calm": 0.210,
+        "day_calm": 0.090,
         "night": 0.065,
-        "ambient": 0.028,
-        "contrast": 0.030,
-        "tonemap": 0.340,
-        "highlight": 0.380,
-        "clear_day": 0.440,
+        "ambient": 0.012,
+        "contrast": 0.040,
+        "tonemap": 0.100,
+        "highlight": 0.180,
+        "clear_day": 0.140,
         "clear_night": 0.105,
         "bloom_threshold": 0.950,
         "bloom_amount": 0.028,
@@ -126,13 +126,13 @@ LOOK = {
         "shadows": 0.028,
         "vibrance": 0.070,
         "plant": 0.010,
-        "day_calm": 0.170,
+        "day_calm": 0.080,
         "night": 0.050,
-        "ambient": 0.020,
-        "contrast": 0.018,
-        "tonemap": 0.260,
-        "highlight": 0.300,
-        "clear_day": 0.340,
+        "ambient": 0.010,
+        "contrast": 0.020,
+        "tonemap": 0.080,
+        "highlight": 0.140,
+        "clear_day": 0.100,
         "clear_night": 0.085,
         "bloom_threshold": 0.970,
         "bloom_amount": 0.015,
@@ -156,13 +156,13 @@ LOOK = {
         "shadows": 0.020,
         "vibrance": 0.050,
         "plant": 0.000,
-        "day_calm": 0.130,
+        "day_calm": 0.060,
         "night": 0.035,
-        "ambient": 0.012,
+        "ambient": 0.006,
         "contrast": 0.000,
-        "tonemap": 0.200,
-        "highlight": 0.250,
-        "clear_day": 0.260,
+        "tonemap": 0.060,
+        "highlight": 0.100,
+        "clear_day": 0.080,
         "clear_night": 0.070,
         "bloom_threshold": 1.000,
         "bloom_amount": 0.000,
@@ -347,16 +347,17 @@ def day_calm(rgb: tuple[float, float, float], day: float, calm: float) -> tuple[
     red, green, blue = rgb
     tone = luma(rgb)
     sat = saturation(rgb)
-    open_mid = smoothstep(0.16, 0.34, tone) * (1.0 - smoothstep(0.90, 0.98, tone))
+    open_mid = smoothstep(0.18, 0.36, tone) * (1.0 - smoothstep(0.92, 0.98, tone))
+    sat_gate = smoothstep(0.28, 0.48, sat)
     green_w = min(1.0, max(0.0, (green - max(red, blue)) / 0.08))
-    warm = min(1.0, max(0.0, (min(red, green) - blue - 0.02) / 0.10))
-    sky = min(1.0, max(0.0, (blue - max(red, green)) / 0.06))
-    pull = calm * day * open_mid * (0.70 + green_w + 0.55 * warm + 0.35 * sky)
-    pull *= 1.0 - 0.65 * skin_mask(rgb, tone, sat)
-    pull = min(0.32, max(0.0, pull))
+    yellow = min(1.0, max(0.0, (min(red, green) - blue - 0.04) / 0.12))
+    not_sunset = 1.0 - min(1.0, max(0.0, (red - green - 0.08) / 0.20))
+    sky = min(1.0, max(0.0, (blue - max(red, green) - 0.04) / 0.10))
+    hue = max(green_w, max(yellow * not_sunset, sky * 0.55))
+    pull = calm * day * open_mid * sat_gate * hue
+    pull *= 1.0 - skin_mask(rgb, tone, sat)
+    pull = min(0.16, max(0.0, pull))
     calmed = [channel * (1.0 - pull) + tone * pull for channel in rgb]
-    hot = smoothstep(0.86, 0.98, tone) * day
-    calmed = [channel * (1.0 - hot) + (channel * 0.97 + 0.01) * hot for channel in calmed]
     return clamp3(tuple(calmed))
 
 
@@ -419,13 +420,13 @@ def highlight_recovery(rgb: tuple[float, float, float], amount: float) -> tuple[
         return rgb
     peak = max(rgb)
     floorc = min(rgb)
-    if peak < 0.86:
+    if peak < 0.94:
         return rgb
-    hot = smoothstep(0.86, 0.98, peak)
+    hot = smoothstep(0.94, 0.995, peak)
     sat = (peak - floorc) / max(peak, 0.001)
-    colored = smoothstep(0.04, 0.18, sat)
+    colored = smoothstep(0.08, 0.22, sat)
     pulled = tuple(channel + (min(channel, peak * 0.92 + floorc * 0.08) - channel) * hot * colored * amount for channel in rgb)
-    white = smoothstep(0.90, 0.98, peak) * (1.0 - smoothstep(0.02, 0.08, sat))
+    white = smoothstep(0.945, 0.962, peak) * (1.0 - smoothstep(0.015, 0.06, sat))
     knee = tuple(min(channel, 0.945) for channel in pulled)
     return guard(rgb, mix(clamp3(pulled), knee, white))
 
@@ -458,12 +459,17 @@ def clear_pixel(rgb: tuple[float, float, float], day_strength: float, night_stre
     red, green, blue = rgb
     tone = luma(rgb)
     sat = saturation(rgb)
-    day_gray = 1.0 - smoothstep(0.03, 0.16, sat)
     night_gray = 1.0 - smoothstep(0.02, 0.10, sat)
-    day_band = smoothstep(0.30, 0.44, tone) * (1.0 - smoothstep(0.78, 0.90, tone))
     night_band = smoothstep(0.12, 0.20, tone) * (1.0 - smoothstep(0.32, 0.46, tone))
-    veil_day = min(day_gray * day_band * day_strength, tone * 0.52)
     veil_night = night_gray * night_band * night_strength
+    day_gray = 1.0 - smoothstep(0.012, 0.07, sat)
+    day_band = smoothstep(0.64, 0.76, tone) * (1.0 - smoothstep(0.90, 0.97, tone))
+    green_w = min(1.0, max(0.0, (green - max(red, blue)) / 0.04))
+    blue_w = min(1.0, max(0.0, (blue - max(red, green)) / 0.04))
+    warm_w = min(1.0, max(0.0, (red - max(green, blue)) / 0.04))
+    hue = max(green_w, max(blue_w, warm_w))
+    day_gray *= 1.0 - smoothstep(0.02, 0.10, hue)
+    veil_day = min(day_gray * day_band * day_strength, tone * 0.16)
     veil = max(veil_day, veil_night)
     if veil <= 0.001:
         return rgb
@@ -632,7 +638,7 @@ COST = {
     "FGM_Night": {"taps": 5, "tier": "baixo", "note": "sai cedo de dia"},
     "FGM_Contrast": {"taps": 1, "tier": "baixo", "note": "1 amostra, fora do Low"},
     "FGM_Tonemap": {"taps": 1, "tier": "baixo", "note": "joelha no topo"},
-    "FGM_HighlightRecovery": {"taps": 1, "tier": "baixo", "note": "sai cedo abaixo de 0,86"},
+    "FGM_HighlightRecovery": {"taps": 1, "tier": "baixo", "note": "sai cedo abaixo de 0,94"},
     "FGM_ColorProtection": {"taps": 1, "tier": "baixo", "note": "trava pele, branco e verde neon"},
     "FGM_ClearView": {"taps": 1, "tier": "baixo", "note": "sem kernel"},
     "FGM_Bloom": {"taps": 13, "tier": "médio", "note": "Ultra 13, High 9, Medium 5, Low desligado"},

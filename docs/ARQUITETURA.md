@@ -16,18 +16,18 @@ Cada perfil leva a própria LUT, a própria textura de asfalto e a própria list
 
 A ordem ligada, quando o passo existe naquele perfil:
 
-1. `FGM_Exposure` — viés curto, some no branco
+1. `FGM_Exposure` — viés curto, some no branco. Ultra e High não ligam.
 2. `FGM_Shadows` — abre só o preto esmagado
-3. `FGM_Lut` — contraste, céu e pôr do sol da textura
-4. `FGM_Color` — vivacidade seletiva
-5. `FGM_AmbientTone` — sombra um fio mais neutra
-6. `FGM_Day` — calma do dia, sai cedo à noite
+3. `FGM_Lut` — contraste, céu e pôr do sol da textura. A joelha da textura já existe aqui.
+4. `FGM_Color` — vivacidade seletiva, menor de dia
+5. `FGM_AmbientTone` — sombra um fio mais neutra. Ultra não liga: a distância pouco saturada virava cinza.
+6. `FGM_Day` — só verde, amarelo e azul já saturados. Não puxa montanha nem mata distante para o luma.
 7. `FGM_Night` — véu azul do céu, sai cedo de dia
 8. `FGM_Contrast` — meio-tom; ausente no Low
-9. `FGM_Tonemap` — joelha do topo
-10. `FGM_HighlightRecovery` — canal estourado
+9. `FGM_Tonemap` — joelha leve, depois da LUT. Não repete a joelha inteira.
+10. `FGM_HighlightRecovery` — só canal acima de 0,94
 11. `FGM_ColorProtection` — trava pele laranja, branco e verde neon
-12. `FGM_ClearView` — véu do horizonte, antes do bloom
+12. `FGM_ClearView` — de dia, só leite alto sem cor; a noite continua no leite baixo. Entra antes do bloom.
 13. `FGM_Bloom` — ausente no Low; entra antes dos postes
 14. `FGM_Lamps` — núcleo, halo, reflexo claro e rastro
 15. `FGM_Roads` — detalhe de asfalto
@@ -41,7 +41,9 @@ Cada passo de cor devolve pele e roupa para a cor com que aquele passo recebeu o
 
 ## O que cada shader faz
 
-Não há shader só para aumentar a lista. Exposição não é a joelha. A joelha não é a recuperação de canal. O dia não trata o céu noturno. O ClearView não pinta poste. O asfalto não faz bloom.
+Não há shader só para aumentar a lista. Exposição não é a joelha. A joelha da LUT não é repetida por inteiro no tonemap. A recuperação de canal não trata céu a 0,88. O dia não dessatura o que já está lavado. O ClearView de dia não escurece montanha nem árvore distante. O asfalto não faz bloom.
+
+No Ultra, exposição e tom de ambiente ficam de fora. Os dois levantavam ou esfriavam o meio-tom e, junto com a calma do dia e o véu largo, empilhavam um filtro cinza na distância. Poste, noite, asfalto, reflexo, pele e chuva desligada continuam como estavam.
 
 ## Postes
 

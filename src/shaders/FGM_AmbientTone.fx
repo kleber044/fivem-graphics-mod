@@ -8,7 +8,7 @@ uniform float AmbientAmount <
     ui_max = 0.20;
     ui_step = 0.005;
     ui_label = "Tom da sombra";
-> = 0.035;
+> = 0.000;
 
 float4 FGM_AmbientPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
 {
