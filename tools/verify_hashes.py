@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+EDITIONS = ("ultra", "high", "medium", "low")
+TITLES = {"ultra": "Ultra", "high": "High", "medium": "Medium", "low": "Low"}
 
 
 def check(folder: Path) -> None:
@@ -22,10 +24,9 @@ def check(folder: Path) -> None:
 
 
 def main() -> None:
-    for edition in ("quality", "performance"):
+    for edition in EDITIONS:
         check(ROOT / "dist" / edition)
-        title = edition.capitalize()
-        check(ROOT / "release" / "FGM-v1.0.0" / title)
+        check(ROOT / "release" / "FGM-v2.0.0" / TITLES[edition])
     print("hashes ok")
 
 

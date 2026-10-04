@@ -1,1 +1,2 @@
-Os presets FGM-Quality.ini e FGM-Performance.ini são gerados por tools/build_dist.py a partir da tabela de edições.
+Os presets FGM-Ultra.ini, FGM-High.ini, FGM-Medium.ini e FGM-Low.ini são gerados por tools/build_dist.py.
+Quality é atalho de Ultra. Performance é atalho de Low.

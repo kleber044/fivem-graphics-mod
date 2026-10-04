@@ -1,4 +1,0 @@
-FGM quality 1.0.0 — mod gráfico local.
-Não copie esta pasta para resources e não edite server.cfg.
-No Windows, use o Instalar-FGM.ps1 da pasta release/FGM-v1.0.0.
-Este manifesto lista origem, destino, backup e hash de cada arquivo.

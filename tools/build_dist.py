@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera dist/quality e dist/performance a partir de src/ e valida o pacote."""
+"""Gera dist/ultra, dist/high, dist/medium e dist/low e a release 2.0.0."""
 
 from __future__ import annotations
 
@@ -7,261 +7,148 @@ import hashlib
 import json
 import shutil
 import struct
+import sys
 import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src" / "shaders"
 DIST = ROOT / "dist"
+sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "src" / "roads"))
+
+from fgm_color import LOOK, PRODUCT_VERSION, grade  # noqa: E402
+from gerar_asfalto import gerar, media  # noqa: E402
+
 LUT_SIZE = 32
-PRODUCT_VERSION = "1.0.0"
 
-EDITIONS = {
-    "quality": {
-        "preset": "FGM-Quality.ini",
-        "lut": "fgm_quality_lut.png",
-        "techniques": [
+OPTIONAL_OFF = (
+    "FGM_FilmGrain@FGM_FilmGrain.fx",
+    "FGM_ChromaticAberration@FGM_ChromaticAberration.fx",
+    "FGM_Rain@FGM_Rain.fx",
+)
+
+ALWAYS_SHADERS = [
+    "FGM.fxh",
+    "FGM_Shadows.fx",
+    "FGM_Lut.fx",
+    "FGM_Color.fx",
+    "FGM_AmbientTone.fx",
+    "FGM_Day.fx",
+    "FGM_Night.fx",
+    "FGM_Tonemap.fx",
+    "FGM_HighlightRecovery.fx",
+    "FGM_ColorProtection.fx",
+    "FGM_ClearView.fx",
+    "FGM_Lamps.fx",
+    "FGM_Roads.fx",
+    "FGM_Sharp.fx",
+    "FGM_Vignette.fx",
+    "FGM_FilmGrain.fx",
+    "FGM_ChromaticAberration.fx",
+    "FGM_Rain.fx",
+]
+
+
+def shader_list(spec: dict) -> list[str]:
+    names = list(ALWAYS_SHADERS)
+    if spec["exposure"] > 0:
+        names.insert(1, "FGM_Exposure.fx")
+    if spec["contrast"] > 0:
+        names.insert(names.index("FGM_Tonemap.fx"), "FGM_Contrast.fx")
+    if spec["bloom_amount"] > 0:
+        names.insert(names.index("FGM_Lamps.fx"), "FGM_Bloom.fx")
+    if spec["reflect"] > 0:
+        names.insert(names.index("FGM_Sharp.fx"), "FGM_ReflectionsEnhance.fx")
+    return names
+
+
+def technique_list(spec: dict) -> list[str]:
+    items = []
+    if spec["exposure"] > 0:
+        items.append("FGM_Exposure@FGM_Exposure.fx")
+    if spec["shadows"] > 0:
+        items.append("FGM_Shadows@FGM_Shadows.fx")
+    items.extend(
+        [
             "FGM_Lut@FGM_Lut.fx",
+            "FGM_Color@FGM_Color.fx",
+            "FGM_AmbientTone@FGM_AmbientTone.fx",
+            "FGM_Day@FGM_Day.fx",
+            "FGM_Night@FGM_Night.fx",
+        ]
+    )
+    if spec["contrast"] > 0:
+        items.append("FGM_Contrast@FGM_Contrast.fx")
+    items.extend(
+        [
+            "FGM_Tonemap@FGM_Tonemap.fx",
+            "FGM_HighlightRecovery@FGM_HighlightRecovery.fx",
+            "FGM_ColorProtection@FGM_ColorProtection.fx",
             "FGM_ClearView@FGM_ClearView.fx",
-            "FGM_Bloom@FGM_Bloom.fx",
-            "FGM_Lamps@FGM_Lamps.fx",
-            "FGM_Sharp@FGM_Sharp.fx",
-            "FGM_Vignette@FGM_Vignette.fx",
-        ],
-        "uniforms": {
-            "FGM_Lut.fx": {"ColorVibrance": "0.140", "PlantExtra": "0.040", "DayCalm": "0.220"},
-            "FGM_ClearView.fx": {"ClearLevel": "3"},
-            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=8", "LampLevel": "3"},
-            "FGM_Bloom.fx": {"BloomThreshold": "0.930", "BloomAmount": "0.050"},
-            "FGM_Sharp.fx": {"SharpStrength": "0.340"},
-            "FGM_Vignette.fx": {"VignetteAmount": "0.160"},
-            "FGM_Rain.fx": {"RainStrength": "0.720", "RainLayers": "2", "RainDistort": "1.000"},
+        ]
+    )
+    if spec["bloom_amount"] > 0:
+        items.append("FGM_Bloom@FGM_Bloom.fx")
+    items.append("FGM_Lamps@FGM_Lamps.fx")
+    if spec["road"] > 0:
+        items.append("FGM_Roads@FGM_Roads.fx")
+    if spec["reflect"] > 0:
+        items.append("FGM_ReflectionsEnhance@FGM_ReflectionsEnhance.fx")
+    items.extend(["FGM_Sharp@FGM_Sharp.fx", "FGM_Vignette@FGM_Vignette.fx"])
+    return items
+
+
+def uniforms(edition: str, spec: dict) -> dict[str, dict[str, str]]:
+    values: dict[str, dict[str, str]] = {
+        "FGM_Shadows.fx": {"ShadowOpen": f"{spec['shadows']:.3f}"},
+        "FGM_Color.fx": {
+            "ColorVibrance": f"{spec['vibrance']:.3f}",
+            "PlantExtra": f"{spec['plant']:.3f}",
         },
-        "shaders": [
-            "FGM.fxh",
-            "FGM_Lut.fx",
-            "FGM_ClearView.fx",
-            "FGM_Lamps.fx",
-            "FGM_Bloom.fx",
-            "FGM_Sharp.fx",
-            "FGM_Vignette.fx",
-            "FGM_Rain.fx",
-        ],
-    },
-    "performance": {
-        "preset": "FGM-Performance.ini",
-        "lut": "fgm_performance_lut.png",
-        "techniques": [
-            "FGM_Lut@FGM_Lut.fx",
-            "FGM_ClearView@FGM_ClearView.fx",
-            "FGM_Lamps@FGM_Lamps.fx",
-            "FGM_Sharp@FGM_Sharp.fx",
-            "FGM_Vignette@FGM_Vignette.fx",
-        ],
-        "uniforms": {
-            "FGM_Lut.fx": {"ColorVibrance": "0.080", "PlantExtra": "0.000", "DayCalm": "0.140"},
-            "FGM_ClearView.fx": {"ClearLevel": "2"},
-            "FGM_Lamps.fx": {"PreprocessorDefinitions": "LAMP_TAPS=4", "LampLevel": "2"},
-            "FGM_Sharp.fx": {"SharpStrength": "0.140"},
-            "FGM_Vignette.fx": {"VignetteAmount": "0.060"},
-            "FGM_Rain.fx": {"RainStrength": "0.300", "RainLayers": "1", "RainDistort": "0.350"},
+        "FGM_AmbientTone.fx": {"AmbientAmount": f"{spec['ambient']:.3f}"},
+        "FGM_Day.fx": {"DayCalm": f"{spec['day_calm']:.3f}"},
+        "FGM_Night.fx": {"NightAmount": f"{spec['night']:.3f}"},
+        "FGM_Tonemap.fx": {"TonemapAmount": f"{spec['tonemap']:.3f}"},
+        "FGM_HighlightRecovery.fx": {"HighlightAmount": f"{spec['highlight']:.3f}"},
+        "FGM_ClearView.fx": {
+            "ClearDay": f"{spec['clear_day']:.3f}",
+            "ClearNight": f"{spec['clear_night']:.3f}",
         },
-        "shaders": [
-            "FGM.fxh",
-            "FGM_Lut.fx",
-            "FGM_ClearView.fx",
-            "FGM_Lamps.fx",
-            "FGM_Sharp.fx",
-            "FGM_Vignette.fx",
-            "FGM_Rain.fx",
-        ],
-    },
-}
-
-
-def smoothstep(edge0: float, edge1: float, x: float) -> float:
-    span = edge1 - edge0
-    if span == 0:
-        return 0.0
-    t = min(1.0, max(0.0, (x - edge0) / span))
-    return t * t * (3.0 - 2.0 * t)
-
-
-def grade(rgb: tuple[float, float, float], edition: str) -> tuple[float, float, float]:
-    # Curva em sRGB. O contraste afrouxa no preto para a sombra não virar buraco.
-    quality = edition == "quality"
-    if quality:
-        contrast = 1.06
-        shadow_scale = 0.040
-        shadow_tint = (-0.010, -0.001, 0.006)
-        highlight_tint = (0.004, 0.001, -0.001)
-        sky_push = 0.010
-        sun_push = 0.012
-    else:
-        contrast = 1.035
-        shadow_scale = 0.020
-        shadow_tint = (-0.005, 0.000, 0.003)
-        highlight_tint = (0.002, 0.001, 0.000)
-        sky_push = 0.005
-        sun_push = 0.006
-    x = list(rgb)
-    lum = 0.2126 * x[0] + 0.7152 * x[1] + 0.0722 * x[2]
-    shadow = smoothstep(0.50, 0.05, lum)
-    highlight = smoothstep(0.62, 0.92, lum)
-    curved = []
-    for channel in x:
-        pulled = (channel - 0.50) * contrast + 0.50
-        weight = smoothstep(0.0, 0.25, channel)
-        curved.append(channel * (1.0 - weight) + pulled * weight)
-    x = [channel * (1.0 - shadow_scale * shadow) for channel in curved]
-    green_dom = max(0.0, x[1] - max(x[0], x[2]))
-    plant = smoothstep(0.02, 0.14, green_dom)
-    blue_dom = max(0.0, x[2] - max(x[0], x[1]))
-    sky = smoothstep(0.02, 0.16, blue_dom) * smoothstep(0.35, 0.80, lum)
-    warm_dom = max(0.0, x[0] - x[2]) * max(0.0, x[0] - x[1] * 0.85)
-    sunset = smoothstep(0.03, 0.16, warm_dom) * smoothstep(0.20, 0.70, lum)
-    tint_scale = 1.0 - 0.75 * plant
-    x = [
-        channel + shadow * shadow_tint[i] * tint_scale + highlight * highlight_tint[i]
-        for i, channel in enumerate(x)
-    ]
-    x[0] += sun_push * sunset - sky_push * 0.35 * sky
-    x[1] += sun_push * 0.25 * sunset
-    x[2] += sky_push * sky - sun_push * 0.45 * sunset
-    return tuple(shoulder(channel) for channel in x)
-
-
-def shoulder(channel: float) -> float:
-    # Joelha alta. Branco continua branco, mas 0,96 não vira 1,00.
-    knee = 0.78
-    if channel <= knee:
-        return min(1.0, max(0.0, channel))
-    span = 1.0 - knee
-    t = (channel - knee) / span
-    curved = t / (1.0 + 0.35 * t)
-    full = 1.0 / 1.35
-    rolled = knee + 0.16 * (curved / full)
-    return min(1.0, max(0.0, rolled))
-
-
-def skin_mask(rgb: tuple[float, float, float], tone: float, sat: float) -> float:
-    red, green, blue = rgb
-    rg = red - green
-    gb = green - blue
-    skin = smoothstep(0.04, 0.12, rg) * (1.0 - smoothstep(0.18, 0.32, rg))
-    skin *= smoothstep(0.03, 0.10, gb)
-    skin *= smoothstep(0.20, 0.40, tone) * (1.0 - smoothstep(0.62, 0.82, tone))
-    skin *= smoothstep(0.10, 0.22, sat) * (1.0 - smoothstep(0.45, 0.65, sat))
-    return min(1.0, max(0.0, skin))
-
-
-def day_calm(rgb: tuple[float, float, float], day: float, calm: float) -> tuple[float, float, float]:
-    # A mesma conta de FGM_DayCalm. Em cena escura, day fica em zero.
-    if day <= 0.001 or calm <= 0.001:
-        return rgb
-    red, green, blue = rgb
-    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
-    peak = max(red, green, blue)
-    floorc = min(red, green, blue)
-    sat = (peak - floorc) / max(peak, 0.001)
-    open_mid = smoothstep(0.16, 0.34, tone) * (1.0 - smoothstep(0.90, 0.98, tone))
-    green_w = min(1.0, max(0.0, (green - max(red, blue)) / 0.08))
-    warm = min(1.0, max(0.0, (min(red, green) - blue - 0.02) / 0.10))
-    sky = min(1.0, max(0.0, (blue - max(red, green)) / 0.06))
-    pull = calm * day * open_mid * (0.70 + green_w + 0.55 * warm + 0.35 * sky)
-    pull *= 1.0 - 0.65 * skin_mask(rgb, tone, sat)
-    pull = min(0.32, max(0.0, pull))
-    calmed = [channel * (1.0 - pull) + tone * pull for channel in rgb]
-    hot = smoothstep(0.86, 0.98, tone) * day
-    calmed = [channel * (1.0 - hot) + (channel * 0.97 + 0.01) * hot for channel in calmed]
-    return tuple(min(1.0, max(0.0, channel)) for channel in calmed)
-
-
-def vibrance(
-    rgb: tuple[float, float, float],
-    amount: float,
-    plant_extra: float,
-    day: float = 0.0,
-    calm: float = 0.0,
-) -> tuple[float, float, float]:
-    # A mesma conta de FGM_Vibrant e FGM_DayCalm em FGM_Lut.fx.
-    day = min(1.0, max(0.0, day))
-    amount *= 1.0 - 0.75 * day
-    plant_extra *= 1.0 - day
-    red, green, blue = rgb
-    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
-    peak = max(red, green, blue)
-    floorc = min(red, green, blue)
-    sat = (peak - floorc) / max(peak, 0.001)
-    shadow = smoothstep(0.08, 0.22, tone)
-    not_white = 1.0 - smoothstep(0.72, 0.90, tone)
-    headroom = 1.0 - smoothstep(0.28, 0.50, sat)
-    protect = 1.0 - 0.80 * skin_mask(rgb, tone, sat)
-    plant = smoothstep(0.03, 0.14, green - max(red, blue))
-    plant *= 1.0 - smoothstep(0.55, 0.80, sat)
-    green_dom = min(1.0, max(0.0, (green - max(red, blue)) / 0.12))
-    blue_dom = min(1.0, max(0.0, (blue - max(red, green)) / 0.10))
-    warm_dom = min(1.0, max(0.0, (red - max(green, blue) - 0.05) / 0.14))
-    hue_bias = (1.0 - 0.65 * green_dom) * (1.0 - 0.55 * blue_dom) * (1.0 - 0.40 * warm_dom)
-    gain = amount * shadow * not_white * headroom * protect * hue_bias * (1.0 + plant_extra * plant)
-    out = [tone + (channel - tone) * (1.0 + gain) for channel in rgb]
-    out_peak = max(out)
-    if out_peak > 1.0:
-        head = max(out_peak - tone, 0.001)
-        room = max(1.0 - tone, 0.0)
-        out = [tone + (channel - tone) * (room / head) for channel in out]
-    out = tuple(min(1.0, max(0.0, channel)) for channel in out)
-    return day_calm(out, day, calm)
-
-
-def keep_person(original: tuple[float, float, float], graded: tuple[float, float, float]) -> tuple[float, float, float]:
-    # A mesma conta de FGM_KeepPerson. Pele e roupa voltam ao quadro. Grama e céu não.
-    red, green, blue = original
-    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
-    peak = max(red, green, blue)
-    floorc = min(red, green, blue)
-    sat = (peak - floorc) / max(peak, 0.001)
-    foliage = smoothstep(0.02, 0.08, green - max(red, blue))
-    skyish = smoothstep(0.04, 0.12, blue - max(red, green))
-    skyish *= smoothstep(0.35, 0.52, tone)
-    skyish *= 1.0 - smoothstep(0.58, 0.78, sat)
-    rg = red - green
-    gb = green - blue
-    skin = skin_mask(original, tone, sat)
-    broad = smoothstep(0.015, 0.06, rg) * (1.0 - smoothstep(0.28, 0.48, rg))
-    broad *= smoothstep(0.008, 0.045, gb)
-    broad *= smoothstep(0.08, 0.20, tone) * (1.0 - smoothstep(0.86, 0.97, tone))
-    broad *= smoothstep(0.05, 0.14, sat) * (1.0 - smoothstep(0.62, 0.82, sat))
-    broad *= 1.0 - foliage
-    skin = max(skin, broad)
-    garment = smoothstep(0.10, 0.20, sat) * (1.0 - foliage) * (1.0 - skyish)
-    keep = min(1.0, max(0.0, max(skin, garment * 0.92)))
-    return tuple(graded[i] * (1.0 - keep) + original[i] * keep for i in range(3))
-
-
-def clear_pixel(rgb: tuple[float, float, float], level: int) -> tuple[float, float, float]:
-    # A mesma conta de FGM_ClearView.fx. Sem amostra extra.
-    level = max(0, min(3, int(level)))
-    day = (0.0, 0.16, 0.34, 0.50)[level]
-    night = (0.0, 0.05, 0.09, 0.14)[level]
-    if day <= 0.0 and night <= 0.0:
-        return rgb
-    red, green, blue = rgb
-    tone = 0.2126 * red + 0.7152 * green + 0.0722 * blue
-    peak = max(red, green, blue)
-    floorc = min(red, green, blue)
-    sat = (peak - floorc) / max(peak, 0.001)
-    day_gray = 1.0 - smoothstep(0.03, 0.16, sat)
-    night_gray = 1.0 - smoothstep(0.02, 0.10, sat)
-    day_band = smoothstep(0.30, 0.44, tone) * (1.0 - smoothstep(0.78, 0.90, tone))
-    night_band = smoothstep(0.12, 0.20, tone) * (1.0 - smoothstep(0.32, 0.46, tone))
-    veil_day = min(day_gray * day_band * day, tone * 0.52)
-    veil_night = night_gray * night_band * night
-    veil = max(veil_day, veil_night)
-    if veil <= 0.001:
-        return rgb
-    scale = 1.0 / max(1.0 - veil, 0.001)
-    return tuple(min(1.0, max(0.0, (channel - veil) * scale)) for channel in rgb)
+        "FGM_Lamps.fx": {
+            "PreprocessorDefinitions": f"LAMP_TAPS={spec['lamp_taps']}",
+            "LampLevel": str(spec["lamp_level"]),
+        },
+        "FGM_Roads.fx": {
+            "RoadStrength": f"{spec['road']:.3f}",
+            "RoadScale": {"ultra": "8.000", "high": "7.000", "medium": "6.000", "low": "4.000"}[edition],
+        },
+        "FGM_Sharp.fx": {"SharpStrength": f"{spec['sharp']:.3f}"},
+        "FGM_Vignette.fx": {"VignetteAmount": f"{spec['vignette']:.3f}"},
+        "FGM_FilmGrain.fx": {"GrainAmount": "0.000"},
+        "FGM_ChromaticAberration.fx": {"AberrationAmount": "0.000"},
+        "FGM_Rain.fx": {
+            "RainStrength": f"{spec['rain']:.3f}",
+            "RainLayers": str(spec["rain_layers"]),
+            "RainDistort": f"{spec['rain_distort']:.3f}",
+        },
+    }
+    if spec["exposure"] > 0:
+        values["FGM_Exposure.fx"] = {"ExposureBias": f"{spec['exposure']:.3f}"}
+    if spec["contrast"] > 0:
+        values["FGM_Contrast.fx"] = {"ContrastAmount": f"{spec['contrast']:.3f}"}
+    if spec["bloom_amount"] > 0:
+        values["FGM_Bloom.fx"] = {
+            "PreprocessorDefinitions": f"BLOOM_TAPS={spec['bloom_taps']}",
+            "BloomThreshold": f"{spec['bloom_threshold']:.3f}",
+            "BloomAmount": f"{spec['bloom_amount']:.3f}",
+        }
+    if spec["reflect"] > 0:
+        values["FGM_ReflectionsEnhance.fx"] = {
+            "PreprocessorDefinitions": f"REFLECT_TAPS={spec['reflect_taps']}",
+            "ReflectAmount": f"{spec['reflect']:.3f}",
+        }
+    return values
 
 
 def write_png(path: Path, width: int, height: int, rgb: bytes) -> None:
@@ -283,32 +170,24 @@ def write_png(path: Path, width: int, height: int, rgb: bytes) -> None:
 def build_lut(path: Path, edition: str) -> None:
     size = LUT_SIZE
     width = size * size
-    height = size
-    rgb = bytearray(width * height * 3)
+    rgb = bytearray(width * size * 3)
     for blue in range(size):
         for green in range(size):
             for red in range(size):
                 color = grade((red / (size - 1), green / (size - 1), blue / (size - 1)), edition)
                 x = blue * size + red
-                y = green
-                index = (y * width + x) * 3
+                index = (green * width + x) * 3
                 rgb[index : index + 3] = bytes(int(round(channel * 255)) for channel in color)
-    write_png(path, width, height, bytes(rgb))
+    write_png(path, width, size, bytes(rgb))
 
 
-def preset_text(edition: str, spec: dict) -> str:
-    # Techniques= é o que roda. FGM_Rain fica fora dessa lista.
-    # TechniqueSorting= só o oferece no overlay, desmarcado, para o jogador ligar.
-    enabled = ",".join(spec["techniques"])
-    sorting = enabled + ",FGM_Rain@FGM_Rain.fx"
-    lines = [
-        f"Techniques={enabled}",
-        f"TechniqueSorting={sorting}",
-        "",
-    ]
-    for shader, values in spec["uniforms"].items():
+def preset_text(techniques: list[str], values: dict[str, dict[str, str]]) -> str:
+    enabled = ",".join(techniques)
+    sorting = enabled + "," + ",".join(OPTIONAL_OFF)
+    lines = [f"Techniques={enabled}", f"TechniqueSorting={sorting}", ""]
+    for shader, pairs in values.items():
         lines.append(f"[{shader}]")
-        for key, value in values.items():
+        for key, value in pairs.items():
             lines.append(f"{key}={value}")
         lines.append("")
     return "\n".join(lines)
@@ -320,15 +199,14 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def manifest(edition: str, spec: dict, folder: Path, files: list[tuple[str, str]]) -> dict:
+def manifest(edition: str, preset: str, folder: Path, files: list[tuple[str, str]]) -> dict:
     entries = []
     for source, destination in files:
-        destination_dir = destination.rsplit("/", 1)[0]
         file_path = folder / source
         entries.append(
             {
                 "source": source,
-                "destination_dir": destination_dir,
+                "destination_dir": destination.rsplit("/", 1)[0],
                 "destination": destination,
                 "sha256": sha256_file(file_path),
                 "bytes": file_path.stat().st_size,
@@ -337,15 +215,18 @@ def manifest(edition: str, spec: dict, folder: Path, files: list[tuple[str, str]
                 "restore_on_uninstall": "restore_backup_or_delete",
             }
         )
+    spec = LOOK[edition]
     return {
-        "schema": 2,
+        "schema": 3,
         "package": f"fgm-{edition}",
         "version": PRODUCT_VERSION,
         "edition": edition,
+        "aliases": {"ultra": ["quality"], "low": ["performance"]}.get(edition, []),
         "kind": "client-local",
-        "preset": spec["preset"],
+        "preset": preset,
         "min_reshade": "5.0.0",
         "preferred_reshade": "6.8.0",
+        "road_texture_px": spec["road_size"],
         "tokens": {
             "fivem_plugins": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\plugins",
             "fivem_root": "%LOCALAPPDATA%\\FiveM\\FiveM.app",
@@ -357,6 +238,11 @@ def manifest(edition: str, spec: dict, folder: Path, files: list[tuple[str, str]
             "clear_view": "local-approximation",
             "vibrance": "selective",
             "damage_blood": "unavailable",
+            "road_detail": "screen-space-original-texture",
+            "world_texture_replacement": "unavailable",
+            "film_grain": "optional-off",
+            "chromatic_aberration": "optional-off",
+            "graphics_settings": "backup-then-replace-existing-keys",
         },
         "install_policy": {
             "default": "backup_if_exists_then_replace",
@@ -397,42 +283,62 @@ def manifest(edition: str, spec: dict, folder: Path, files: list[tuple[str, str]
 
 
 def build_edition(edition: str) -> None:
-    spec = EDITIONS[edition]
+    spec = LOOK[edition]
     folder = DIST / edition
     shader_dir = folder / "reshade-shaders" / "Shaders" / "FGM"
     texture_dir = folder / "reshade-shaders" / "Textures" / "FGM"
+    road_dir = folder / "roads"
     if folder.exists():
         shutil.rmtree(folder)
     shader_dir.mkdir(parents=True)
     texture_dir.mkdir(parents=True)
-
-    for name in spec["shaders"]:
+    road_dir.mkdir(parents=True)
+    lut_name = f"fgm_{edition}_lut.png"
+    preset_name = f"FGM-{edition.capitalize()}.ini"
+    for name in shader_list(spec):
         text = (SRC / name).read_text(encoding="utf-8")
         if name == "FGM_Lut.fx":
-            text = text.replace("fgm_quality_lut.png", spec["lut"])
+            text = text.replace("fgm_ultra_lut.png", lut_name)
         (shader_dir / name).write_text(text, encoding="utf-8")
-
-    build_lut(texture_dir / spec["lut"], edition)
-    (folder / spec["preset"]).write_text(preset_text(edition, spec), encoding="utf-8")
-
-    packaged = []
-    for path in sorted(folder.rglob("*")):
-        if path.is_file() and path.name != "manifest.json":
-            source = path.relative_to(folder).as_posix()
-            destination = "{fivem_plugins}/" + source
-            packaged.append((source, destination))
-    (folder / "manifest.json").write_text(
-        json.dumps(manifest(edition, spec, folder, packaged), indent=2, ensure_ascii=False) + "\n",
+    build_lut(texture_dir / lut_name, edition)
+    road = gerar(spec["road_size"], seed={"ultra": 11, "high": 12, "medium": 13, "low": 14}[edition], cracks={"ultra": 1.0, "high": 0.85, "medium": 0.55, "low": 0.35}[edition])
+    if not 0.42 <= media(road) <= 0.58:
+        raise SystemExit(f"asfalto {edition} saiu da média neutra ({media(road):.3f})")
+    write_png(texture_dir / "fgm_road.png", spec["road_size"], spec["road_size"], road)
+    write_png(road_dir / "fgm_road.png", spec["road_size"], spec["road_size"], road)
+    (road_dir / "LEIA-ME.txt").write_text(
+        "\n".join(
+            [
+                f"Asfalto FGM {edition}, {spec['road_size']} px.",
+                "Textura original gerada por src/roads/gerar_asfalto.py.",
+                "Não é arquivo da Rockstar e não entra em update.rpf.",
+                "O shader FGM_Roads usa a cópia em reshade-shaders/Textures/FGM/fgm_road.png.",
+                "",
+            ]
+        ),
         encoding="utf-8",
     )
-    readme = folder / "LEIA-ME.txt"
-    readme.write_text(
+    techniques = technique_list(spec)
+    (folder / preset_name).write_text(preset_text(techniques, uniforms(edition, spec)), encoding="utf-8")
+    packaged = []
+    for path in sorted(folder.rglob("*")):
+        if not path.is_file() or path.name in {"manifest.json", "LEIA-ME.txt"}:
+            continue
+        if path.parent.name == "roads":
+            continue
+        source = path.relative_to(folder).as_posix()
+        packaged.append((source, "{fivem_plugins}/" + source))
+    (folder / "manifest.json").write_text(
+        json.dumps(manifest(edition, preset_name, folder, packaged), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    (folder / "LEIA-ME.txt").write_text(
         "\n".join(
             [
                 f"FGM {edition} {PRODUCT_VERSION} — mod gráfico local.",
                 "Não copie esta pasta para resources e não edite server.cfg.",
-                "No Windows, use o Instalar-FGM.ps1 da pasta release/FGM-v1.0.0.",
-                "Este manifesto lista origem, destino, backup e hash de cada arquivo.",
+                "No Windows, use Instalar-Ultra.cmd, Instalar-High.cmd, Instalar-Medium.cmd ou Instalar-Low.cmd.",
+                "Quality instala Ultra. Performance instala Low.",
                 "",
             ]
         ),
@@ -440,24 +346,44 @@ def build_edition(edition: str) -> None:
     )
 
 
+def launcher(args: str, script: str = "%~dp0Instalar-FGM.ps1") -> str:
+    return "\r\n".join(
+        [
+            "@echo off",
+            "powershell -NoProfile -ExecutionPolicy Bypass -File \"" + script + "\" -Command " + args,
+            "if errorlevel 1 pause",
+            "",
+        ]
+    )
+
+
 def assemble_release() -> None:
     release = ROOT / "release" / f"FGM-v{PRODUCT_VERSION}"
     if release.exists():
         shutil.rmtree(release)
-    mapping = {"quality": "Quality", "performance": "Performance"}
+    old = ROOT / "release" / "FGM-v1.0.0"
+    if old.exists():
+        shutil.rmtree(old)
+    titles = {"ultra": "Ultra", "high": "High", "medium": "Medium", "low": "Low"}
     manifests = release / "installer-manifests"
     manifests.mkdir(parents=True)
-    for edition, title in mapping.items():
+    for edition, title in titles.items():
         shutil.copytree(DIST / edition, release / title)
         shutil.copy2(DIST / edition / "manifest.json", manifests / f"{edition}.json")
-    for name in ("docs", "licenses"):
-        shutil.copytree(ROOT / name, release / name)
+    shutil.copytree(ROOT / "docs", release / "Docs")
+    shutil.copytree(ROOT / "licenses", release / "Licenses")
+    shutil.copytree(ROOT / "licenses", release / "licenses")
+    installer = release / "Installer"
+    installer.mkdir()
+    for name in ("Instalar-FGM.ps1", "fgm-install-lib.ps1"):
+        shutil.copy2(ROOT / "tools" / name, release / name)
+        shutil.copy2(ROOT / "tools" / name, installer / name)
+    shutil.copy2(ROOT / "src" / "settings" / "graphics.json", release / "graphics.json")
+    shutil.copy2(ROOT / "src" / "settings" / "graphics.json", DIST / "graphics.json")
     runtime = release / "runtime"
     runtime.mkdir()
     shutil.copy2(ROOT / "tools" / "reshade-official.json", runtime / "reshade-official.json")
     shutil.copy2(ROOT / "tools" / "reshade-official.json", release / "reshade-official.json")
-    shutil.copy2(ROOT / "tools" / "Instalar-FGM.ps1", release / "Instalar-FGM.ps1")
-    shutil.copy2(ROOT / "tools" / "fgm-install-lib.ps1", release / "fgm-install-lib.ps1")
     commands = {
         "product": "FGM",
         "version": PRODUCT_VERSION,
@@ -466,53 +392,41 @@ def assemble_release() -> None:
         "plugins": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\plugins",
         "state": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\FGM-state.json",
         "backup": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\FGM-Backup\\<data-hora>\\",
+        "graphics": "%USERPROFILE%\\Documents\\Rockstar Games\\GTA V\\settings.xml",
         "commands": {
-            "install_quality": ["-Command", "install", "-Edition", "quality"],
-            "install_performance": ["-Command", "install", "-Edition", "performance"],
-            "switch_quality": ["-Command", "switch", "-Edition", "quality"],
-            "switch_performance": ["-Command", "switch", "-Edition", "performance"],
+            "install_ultra": ["-Command", "install", "-Edition", "ultra"],
+            "install_high": ["-Command", "install", "-Edition", "high"],
+            "install_medium": ["-Command", "install", "-Edition", "medium"],
+            "install_low": ["-Command", "install", "-Edition", "low"],
+            "install_quality_alias": ["-Command", "install", "-Edition", "quality"],
+            "install_performance_alias": ["-Command", "install", "-Edition", "performance"],
             "repair": ["-Command", "repair"],
             "uninstall": ["-Command", "uninstall"],
         },
     }
     (manifests / "commands.json").write_text(json.dumps(commands, indent=2) + "\n", encoding="utf-8")
     launchers = {
-        "Instalar-Quality.cmd": 'install -Edition quality',
-        "Instalar-Performance.cmd": 'install -Edition performance',
+        "Instalar-Ultra.cmd": "install -Edition ultra",
+        "Instalar-High.cmd": "install -Edition high",
+        "Instalar-Medium.cmd": "install -Edition medium",
+        "Instalar-Low.cmd": "install -Edition low",
+        "Instalar-Quality.cmd": "install -Edition quality",
+        "Instalar-Performance.cmd": "install -Edition performance",
         "Desinstalar.cmd": "uninstall",
         "Reparar.cmd": "repair",
     }
     for filename, args in launchers.items():
-        (release / filename).write_text(
-            "\r\n".join(
-                [
-                    "@echo off",
-                    "powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Instalar-FGM.ps1\" -Command " + args,
-                    "if errorlevel 1 pause",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-        )
+        (release / filename).write_text(launcher(args), encoding="utf-8")
+        (installer / filename).write_text(launcher(args, "%~dp0..\\Instalar-FGM.ps1"), encoding="utf-8")
     (release / "COMO-TESTAR.txt").write_text(
         "\n".join(
             [
-                "FGM 1.0.0 — teste no Windows",
+                "FGM 2.0.0 — uma rodada no FiveM",
                 "",
-                "1. Feche o FiveM.",
-                "2. Dê dois cliques em Instalar-Quality.cmd ou Instalar-Performance.cmd.",
-                "3. Abra o FiveM e entre num servidor que permita ReShade.",
-                "4. O preset da edição escolhida já fica selecionado.",
-                "5. Para trocar, feche o jogo e execute a outra instalação.",
-                "6. Desinstalar.cmd restaura o backup e remove só o que o FGM criou.",
-                "7. FGM_Rain começa desligado. Não há gotas no menu nem em clima limpo.",
-                "8. Quando chover no jogo, abra o ReShade com Home e marque FGM_Rain.",
-                "9. Força das gotas sobe a intensidade. Desmarque a técnica quando a chuva acabar.",
-                "10. Quality abre em White LED, horizonte 3 e vivacidade 0,14.",
-                "11. Performance abre em Neutral, horizonte 2 e vivacidade 0,08.",
-                "12. FGM_Rain continua desmarcado até você ligar na chuva.",
-                "",
-                "O ReShade 6.8.0 é baixado de https://reshade.me/ durante a instalação.",
+                "Feche o FiveM antes de instalar. A lista curta de teste está em Docs/TESTES.md.",
+                "Ultra é o visual principal. Quality instala Ultra. Performance instala Low.",
+                "FGM_Rain, grão e aberração cromática começam desligados.",
+                "O ReShade 6.8.0 é baixado de https://reshade.me/ se ainda não houver um compatível.",
                 "O binário não vem neste pacote.",
                 "",
             ]
@@ -523,9 +437,13 @@ def assemble_release() -> None:
 
 
 def main() -> None:
-    for edition in EDITIONS:
+    for stale in ("quality", "performance"):
+        folder = DIST / stale
+        if folder.exists():
+            shutil.rmtree(folder)
+    for edition in LOOK:
         build_edition(edition)
-        print(f"dist/{edition} pronto")
+        print(f"dist/{edition} pronto ({LOOK[edition]['road_size']} px de asfalto)")
     assemble_release()
 
 

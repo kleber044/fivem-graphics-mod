@@ -1,0 +1,56 @@
+{
+  "product": "FGM",
+  "version": "2.0.0",
+  "entrypoint": "Instalar-FGM.ps1",
+  "fivem_root": "%LOCALAPPDATA%\\FiveM\\FiveM.app",
+  "plugins": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\plugins",
+  "state": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\FGM-state.json",
+  "backup": "%LOCALAPPDATA%\\FiveM\\FiveM.app\\FGM-Backup\\<data-hora>\\",
+  "graphics": "%USERPROFILE%\\Documents\\Rockstar Games\\GTA V\\settings.xml",
+  "commands": {
+    "install_ultra": [
+      "-Command",
+      "install",
+      "-Edition",
+      "ultra"
+    ],
+    "install_high": [
+      "-Command",
+      "install",
+      "-Edition",
+      "high"
+    ],
+    "install_medium": [
+      "-Command",
+      "install",
+      "-Edition",
+      "medium"
+    ],
+    "install_low": [
+      "-Command",
+      "install",
+      "-Edition",
+      "low"
+    ],
+    "install_quality_alias": [
+      "-Command",
+      "install",
+      "-Edition",
+      "quality"
+    ],
+    "install_performance_alias": [
+      "-Command",
+      "install",
+      "-Edition",
+      "performance"
+    ],
+    "repair": [
+      "-Command",
+      "repair"
+    ],
+    "uninstall": [
+      "-Command",
+      "uninstall"
+    ]
+  }
+}
