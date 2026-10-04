@@ -1,5 +1,5 @@
-// Véu do horizonte de dia e leite da noite. Não lê profundidade nem o clima.
-// Cor de pele, roupa, planta e céu saturado fica de fora. O dia desce mais que a noite.
+// De dia, só o leite alto e quase sem cor. Montanha, mata distante e céu com tom ficam quietos.
+// A noite continua no leite baixo. Não lê profundidade nem o clima.
 // Custo: 1 amostra. Baixo.
 #include "FGM.fxh"
 
@@ -9,7 +9,7 @@ uniform float ClearDay <
     ui_max = 0.80;
     ui_step = 0.01;
     ui_label = "Véu do dia";
-> = 0.50;
+> = 0.18;
 
 uniform float ClearNight <
     ui_type = "slider";
@@ -26,12 +26,17 @@ float4 FGM_ClearPS(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
         return float4(color, 1.0);
     float luma = FGM_Luma(color);
     float sat = FGM_Sat(color);
-    float dayGray = 1.0 - smoothstep(0.03, 0.16, sat);
     float nightGray = 1.0 - smoothstep(0.02, 0.10, sat);
-    float dayBand = smoothstep(0.30, 0.44, luma) * (1.0 - smoothstep(0.78, 0.90, luma));
     float nightBand = smoothstep(0.12, 0.20, luma) * (1.0 - smoothstep(0.32, 0.46, luma));
-    float veilDay = min(dayGray * dayBand * ClearDay, luma * 0.52);
     float veilNight = nightGray * nightBand * ClearNight;
+    float dayGray = 1.0 - smoothstep(0.012, 0.07, sat);
+    float dayBand = smoothstep(0.64, 0.76, luma) * (1.0 - smoothstep(0.90, 0.97, luma));
+    float green = saturate((color.g - max(color.r, color.b)) / 0.04);
+    float blue = saturate((color.b - max(color.r, color.g)) / 0.04);
+    float warm = saturate((color.r - max(color.g, color.b)) / 0.04);
+    float hue = max(green, max(blue, warm));
+    dayGray *= 1.0 - smoothstep(0.02, 0.10, hue);
+    float veilDay = min(dayGray * dayBand * ClearDay, luma * 0.16);
     float veil = max(veilDay, veilNight);
     if (veil <= 0.001)
         return float4(color, 1.0);

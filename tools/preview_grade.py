@@ -419,10 +419,16 @@ def check(night: bytearray, day: bytearray, graded: dict, day_done: dict, night_
     if sunset_delta > 0.03:
         fail("o pôr do sol foi tratado como poste")
 
-    haze_before = luma(pixel(day, width, *MARK["haze"]))
-    haze_after = luma(pixel(day_done["ultra"], width, *MARK["haze"]))
-    if haze_before - haze_after < 0.08 or haze_after < 0.20:
-        fail(f"névoa do dia fora da faixa ({haze_before:.3f} -> {haze_after:.3f})")
+    haze_src = pixel(day, width, *MARK["haze"])
+    haze_out = pixel(day_done["ultra"], width, *MARK["haze"])
+    haze_before = luma(haze_src)
+    haze_after = luma(haze_out)
+    if abs(haze_before - haze_after) > 0.06:
+        fail(f"montanha/névoa foi esmagada ({haze_before:.3f} -> {haze_after:.3f})")
+    if saturation(haze_out) + 0.02 < saturation(haze_src):
+        fail(f"névoa perdeu cor ({saturation(haze_src):.3f} -> {saturation(haze_out):.3f})")
+    if (haze_src[2] - haze_src[0]) - (haze_out[2] - haze_out[0]) > 0.015:
+        fail("o tom da montanha foi comido")
     milk_before = luma(pixel(night, width, *MARK["milk"]))
     milk_u = luma(pixel(night_done["ultra"], width, *MARK["milk"]))
     milk_l = luma(pixel(night_done["low"], width, *MARK["milk"]))
@@ -439,12 +445,12 @@ def check(night: bytearray, day: bytearray, graded: dict, day_done: dict, night_
     plant_before = saturation(pixel(day, width, *MARK["plant"]))
     plant_after = saturation(pixel(day_done["ultra"], width, *MARK["plant"]))
     plant_low = saturation(pixel(day_done["low"], width, *MARK["plant"]))
-    if plant_before - plant_after < 0.02:
-        fail(f"o dia não acalmou a vegetação ({plant_before:.3f} -> {plant_after:.3f})")
-    if plant_after < 0.18 or plant_after > 0.50:
-        fail(f"vegetação fora do natural ({plant_after:.3f})")
-    if plant_after > plant_low + 0.02:
-        fail("Ultra deveria acalmar o dia pelo menos tanto quanto Low")
+    if plant_before - plant_after > 0.08:
+        fail(f"vegetação foi lavada ({plant_before:.3f} -> {plant_after:.3f})")
+    if plant_after < 0.25 or plant_after > plant_before + 0.05:
+        fail(f"vegetação fora do natural ({plant_before:.3f} -> {plant_after:.3f})")
+    if plant_after + 0.04 < plant_low:
+        fail("Ultra ficou mais cinza que Low na vegetação")
     if foliage_mask(pixel(day_done["ultra"], width, *MARK["plant"])) < 0.2:
         fail("a planta deixou de ser verde")
 
@@ -464,8 +470,14 @@ def check(night: bytearray, day: bytearray, graded: dict, day_done: dict, night_
         fail(f"carro estourou {tuple(round(c, 3) for c in car)}")
     sky_src = pixel(day, width, *MARK["sky"])
     sky_out = pixel(day_done["ultra"], width, *MARK["sky"])
-    if (sky_src[2] - sky_src[0]) - (sky_out[2] - sky_out[0]) < 0.015:
-        fail("o céu do dia não perdeu o azul exagerado")
+    sky_gap_src = sky_src[2] - sky_src[0]
+    sky_gap_out = sky_out[2] - sky_out[0]
+    if sky_gap_out < sky_gap_src * 0.82:
+        fail(f"céu perdeu azul demais ({sky_gap_src:.3f} -> {sky_gap_out:.3f})")
+    if sky_gap_out > sky_gap_src * 1.08:
+        fail(f"céu ficou saturado demais ({sky_gap_src:.3f} -> {sky_gap_out:.3f})")
+    if saturation(sky_out) < 0.28:
+        fail(f"céu acinzentado ({saturation(sky_out):.3f})")
 
     road = pixel(night_done["ultra"], width, *MARK["road"])
     if asphalt_mask(pixel(night, width, *MARK["road"])) < 0.2 and asphalt_mask(road) < 0.05:

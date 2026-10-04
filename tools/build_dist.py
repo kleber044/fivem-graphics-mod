@@ -52,6 +52,8 @@ ALWAYS_SHADERS = [
 
 def shader_list(spec: dict) -> list[str]:
     names = list(ALWAYS_SHADERS)
+    if spec["ambient"] <= 0:
+        names.remove("FGM_AmbientTone.fx")
     if spec["exposure"] > 0:
         names.insert(1, "FGM_Exposure.fx")
     if spec["contrast"] > 0:
@@ -69,15 +71,10 @@ def technique_list(spec: dict) -> list[str]:
         items.append("FGM_Exposure@FGM_Exposure.fx")
     if spec["shadows"] > 0:
         items.append("FGM_Shadows@FGM_Shadows.fx")
-    items.extend(
-        [
-            "FGM_Lut@FGM_Lut.fx",
-            "FGM_Color@FGM_Color.fx",
-            "FGM_AmbientTone@FGM_AmbientTone.fx",
-            "FGM_Day@FGM_Day.fx",
-            "FGM_Night@FGM_Night.fx",
-        ]
-    )
+    items.extend(["FGM_Lut@FGM_Lut.fx", "FGM_Color@FGM_Color.fx"])
+    if spec["ambient"] > 0:
+        items.append("FGM_AmbientTone@FGM_AmbientTone.fx")
+    items.extend(["FGM_Day@FGM_Day.fx", "FGM_Night@FGM_Night.fx"])
     if spec["contrast"] > 0:
         items.append("FGM_Contrast@FGM_Contrast.fx")
     items.extend(
@@ -106,7 +103,6 @@ def uniforms(edition: str, spec: dict) -> dict[str, dict[str, str]]:
             "ColorVibrance": f"{spec['vibrance']:.3f}",
             "PlantExtra": f"{spec['plant']:.3f}",
         },
-        "FGM_AmbientTone.fx": {"AmbientAmount": f"{spec['ambient']:.3f}"},
         "FGM_Day.fx": {"DayCalm": f"{spec['day_calm']:.3f}"},
         "FGM_Night.fx": {"NightAmount": f"{spec['night']:.3f}"},
         "FGM_Tonemap.fx": {"TonemapAmount": f"{spec['tonemap']:.3f}"},
@@ -133,6 +129,8 @@ def uniforms(edition: str, spec: dict) -> dict[str, dict[str, str]]:
             "RainDistort": f"{spec['rain_distort']:.3f}",
         },
     }
+    if spec["ambient"] > 0:
+        values["FGM_AmbientTone.fx"] = {"AmbientAmount": f"{spec['ambient']:.3f}"}
     if spec["exposure"] > 0:
         values["FGM_Exposure.fx"] = {"ExposureBias": f"{spec['exposure']:.3f}"}
     if spec["contrast"] > 0:

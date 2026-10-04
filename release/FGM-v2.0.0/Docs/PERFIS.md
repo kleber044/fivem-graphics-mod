@@ -8,8 +8,12 @@ Quatro presets. Os números abaixo são os do arquivo `.ini` gerado por `tools/b
 | Preset | `FGM-Ultra.ini` | `FGM-High.ini` | `FGM-Medium.ini` | `FGM-Low.ini` |
 | Vivacidade | 0,12 | 0,10 | 0,07 | 0,05 |
 | Verde extra | 0,03 | 0,02 | 0,01 | 0 |
-| Calma do dia | 0,24 | 0,21 | 0,17 | 0,13 |
-| Véu do dia | 0,50 | 0,44 | 0,34 | 0,26 |
+| Calma do dia | 0,10 | 0,09 | 0,08 | 0,06 |
+| Véu do dia | 0,18 | 0,14 | 0,10 | 0,08 |
+| Exposição | desligada | desligada | desligada | desligada |
+| Tom de ambiente | desligado | 0,012 | 0,010 | 0,006 |
+| Joelha | 0,12 | 0,10 | 0,08 | 0,06 |
+| Recuperação de luz | 0,22 | 0,18 | 0,14 | 0,10 |
 | Véu da noite | 0,12 | 0,105 | 0,085 | 0,07 |
 | Bloom | 0,04 acima de 0,94, 13 amostras | 0,028 acima de 0,95, 9 | 0,015 acima de 0,97, 5 | desligado |
 | Postes | White LED, 8 | White LED, 8 | Neutral, 4 | Neutral, 4 |
